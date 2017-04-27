@@ -91,7 +91,7 @@ mbus_error_str_set(char *message)
 ADDAPI void ADDCALL
 mbus_error_reset()
 {
-    snprintf(error_str, sizeof(error_str), "no errors");
+    snprintf(error_str, sizeof(error_str)-1, "no errors");
 }
 
 //------------------------------------------------------------------------------
@@ -337,7 +337,7 @@ mbus_frame_verify(mbus_frame *frame)
             case MBUS_FRAME_TYPE_SHORT:
                 if(frame->start1 != MBUS_FRAME_SHORT_START)
                 {
-                    snprintf(error_str, sizeof(error_str), "No frame start");
+                    snprintf(error_str, sizeof(error_str)-1, "No frame start");
 
                     return -1;
                 }
@@ -348,7 +348,7 @@ mbus_frame_verify(mbus_frame *frame)
                     (frame->control !=  MBUS_CONTROL_MASK_REQ_UD2)                          &&
                     (frame->control != (MBUS_CONTROL_MASK_REQ_UD2 | MBUS_CONTROL_MASK_FCB)))
                 {
-                    snprintf(error_str, sizeof(error_str), "Unknown Control Code 0x%.2x", frame->control);
+                    snprintf(error_str, sizeof(error_str)-1, "Unknown Control Code 0x%.2x", frame->control);
 
                     return -1;
                 }
@@ -360,7 +360,7 @@ mbus_frame_verify(mbus_frame *frame)
                 if(frame->start1  != MBUS_FRAME_CONTROL_START ||
                    frame->start2  != MBUS_FRAME_CONTROL_START)
                 {
-                    snprintf(error_str, sizeof(error_str), "No frame start");
+                    snprintf(error_str, sizeof(error_str)-1, "No frame start");
 
                     return -1;
                 }
@@ -372,21 +372,21 @@ mbus_frame_verify(mbus_frame *frame)
                     (frame->control != (MBUS_CONTROL_MASK_RSP_UD | MBUS_CONTROL_MASK_ACD)) &&
                     (frame->control != (MBUS_CONTROL_MASK_RSP_UD | MBUS_CONTROL_MASK_DFC | MBUS_CONTROL_MASK_ACD)))
                 {
-                    snprintf(error_str, sizeof(error_str), "Unknown Control Code 0x%.2x", frame->control);
+                    snprintf(error_str, sizeof(error_str)-1, "Unknown Control Code 0x%.2x", frame->control);
 
                     return -1;
                 }
 
                 if (frame->length1 != frame->length2)
                 {
-                    snprintf(error_str, sizeof(error_str), "Frame length 1 != 2");
+                    snprintf(error_str, sizeof(error_str)-1, "Frame length 1 != 2");
 
                     return -1;
                 }
 
                 if (frame->length1 != calc_length(frame))
                 {
-                    snprintf(error_str, sizeof(error_str), "Frame length 1 != calc length");
+                    snprintf(error_str, sizeof(error_str)-1, "Frame length 1 != calc length");
 
                     return -1;
                 }
@@ -394,14 +394,14 @@ mbus_frame_verify(mbus_frame *frame)
                 break;
 
             default:
-                snprintf(error_str, sizeof(error_str), "Unknown frame type 0x%.2x", frame->type);
+                snprintf(error_str, sizeof(error_str)-1, "Unknown frame type 0x%.2x", frame->type);
 
                 return -1;
         }
 
         if(frame->stop != MBUS_FRAME_STOP)
         {
-            snprintf(error_str, sizeof(error_str), "No frame stop");
+            snprintf(error_str, sizeof(error_str)-1, "No frame stop");
 
             return -1;
         }
@@ -410,7 +410,7 @@ mbus_frame_verify(mbus_frame *frame)
 
         if(frame->checksum != checksum)
         {
-            snprintf(error_str, sizeof(error_str), "Invalid checksum (0x%.2x != 0x%.2x)", frame->checksum, checksum);
+            snprintf(error_str, sizeof(error_str)-1, "Invalid checksum (0x%.2x != 0x%.2x)", frame->checksum, checksum);
 
             return -1;
         }
@@ -418,7 +418,7 @@ mbus_frame_verify(mbus_frame *frame)
         return 0;
     }
 
-    snprintf(error_str, sizeof(error_str), "Got null pointer to frame.");
+    snprintf(error_str, sizeof(error_str)-1, "Got null pointer to frame.");
 
     return -1;
 }
@@ -669,7 +669,7 @@ mbus_data_float_decode(unsigned char *float_data)
             uint32_t u32;
             float f;
         } data;
-        memcpy(&(data.u32), float_data, sizeof(uint32_t));
+		memcpy(&(data.u32), float_data, sizeof(data.u32));
         return data.f;
     }
 #endif
@@ -4411,7 +4411,7 @@ mbus_frame_get_secondary_address(mbus_frame *frame, char addr[32])
 
     id = (unsigned long) mbus_data_bcd_decode(data->data_var.header.id_bcd, 4);
 
-    snprintf(addr, sizeof(addr), "%08lu%02X%02X%02X%02X",
+    snprintf(addr, 32*sizeof(addr[0]), "%08lu%02X%02X%02X%02X",
              id,
              data->data_var.header.manufacturer[0],
              data->data_var.header.manufacturer[1],

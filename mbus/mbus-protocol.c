@@ -55,11 +55,6 @@ mbus_manufacturer_id(char *manufacturer)
     return (0x0421 <= id && id <= 0x6b5a) ? id : 0;
 }
 
-//------------------------------------------------------------------------------
-// internal data
-//------------------------------------------------------------------------------
-static mbus_slave_data slave_data[MBUS_MAX_PRIMARY_SLAVES];
-
 //
 //  trace callbacks
 //
@@ -97,21 +92,6 @@ ADDAPI void ADDCALL
 mbus_error_reset()
 {
     snprintf(error_str, sizeof(error_str), "no errors");
-}
-
-//------------------------------------------------------------------------------
-/// Return a pointer to the slave_data register. This register can be used for
-/// storing current slave status.
-//------------------------------------------------------------------------------
-ADDAPI mbus_slave_data * ADDCALL
-mbus_slave_data_get(size_t i)
-{
-    if (i < MBUS_MAX_PRIMARY_SLAVES)
-    {
-        return &slave_data[i];
-    }
-
-    return NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -846,10 +826,8 @@ mbus_data_manufacturer_encode(unsigned char *m_data, unsigned char *m_code)
 ///
 //------------------------------------------------------------------------------
 ADDAPI const char * ADDCALL
-mbus_decode_manufacturer(unsigned char byte1, unsigned char byte2)
+mbus_decode_manufacturer(unsigned char byte1, unsigned char byte2, char m_str[4])
 {
-    static char m_str[4];
-
     int m_id;
 
     m_str[0] = byte1;
@@ -866,12 +844,11 @@ mbus_decode_manufacturer(unsigned char byte1, unsigned char byte2)
 }
 
 ADDAPI const char * ADDCALL
-mbus_data_product_name(mbus_data_variable_header *header)
+mbus_data_product_name(mbus_data_variable_header *header, char buff[128])
 {
-    static char buff[128];
     unsigned int manufacturer;
 
-    memset(buff, 0, sizeof(buff));
+    memset(buff, 0, 128*sizeof(buff[0]));
 
     if (header)
     {
@@ -1298,64 +1275,62 @@ mbus_data_product_name(mbus_data_variable_header *header)
 /// For fixed-length frames, get a string describing the medium.
 ///
 ADDAPI const char * ADDCALL
-mbus_data_fixed_medium(mbus_data_fixed *data)
+mbus_data_fixed_medium(mbus_data_fixed *data, char buff[256])
 {
-    static char buff[256];
-
     if (data)
     {
         switch ( (data->cnt1_type&0xC0)>>6 | (data->cnt2_type&0xC0)>>4 )
         {
             case 0x00:
-                snprintf(buff, sizeof(buff), "Other");
+                snprintf(buff, 256*sizeof(buff[0]), "Other");
                 break;
             case 0x01:
-                snprintf(buff, sizeof(buff), "Oil");
+                snprintf(buff, 256*sizeof(buff[0]), "Oil");
                 break;
             case 0x02:
-                snprintf(buff, sizeof(buff), "Electricity");
+                snprintf(buff, 256*sizeof(buff[0]), "Electricity");
                 break;
             case 0x03:
-                snprintf(buff, sizeof(buff), "Gas");
+                snprintf(buff, 256*sizeof(buff[0]), "Gas");
                 break;
             case 0x04:
-                snprintf(buff, sizeof(buff), "Heat");
+                snprintf(buff, 256*sizeof(buff[0]), "Heat");
                 break;
             case 0x05:
-                snprintf(buff, sizeof(buff), "Steam");
+                snprintf(buff, 256*sizeof(buff[0]), "Steam");
                 break;
             case 0x06:
-                snprintf(buff, sizeof(buff), "Hot Water");
+                snprintf(buff, 256*sizeof(buff[0]), "Hot Water");
                 break;
             case 0x07:
-                snprintf(buff, sizeof(buff), "Water");
+                snprintf(buff, 256*sizeof(buff[0]), "Water");
                 break;
             case 0x08:
-                snprintf(buff, sizeof(buff), "H.C.A.");
+                snprintf(buff, 256*sizeof(buff[0]), "H.C.A.");
                 break;
             case 0x09:
-                snprintf(buff, sizeof(buff), "Reserved");
+                snprintf(buff, 256*sizeof(buff[0]), "Reserved");
                 break;
             case 0x0A:
-                snprintf(buff, sizeof(buff), "Gas Mode 2");
+                snprintf(buff, 256*sizeof(buff[0]), "Gas Mode 2");
                 break;
             case 0x0B:
-                snprintf(buff, sizeof(buff), "Heat Mode 2");
+                snprintf(buff, 256*sizeof(buff[0]), "Heat Mode 2");
                 break;
             case 0x0C:
-                snprintf(buff, sizeof(buff), "Hot Water Mode 2");
+                snprintf(buff, 256*sizeof(buff[0]), "Hot Water Mode 2");
                 break;
             case 0x0D:
-                snprintf(buff, sizeof(buff), "Water Mode 2");
+                snprintf(buff, 256*sizeof(buff[0]), "Water Mode 2");
                 break;
             case 0x0E:
-                snprintf(buff, sizeof(buff), "H.C.A. Mode 2");
+                snprintf(buff, 256*sizeof(buff[0]), "H.C.A. Mode 2");
                 break;
             case 0x0F:
-                snprintf(buff, sizeof(buff), "Reserved");
+                snprintf(buff, 256*sizeof(buff[0]), "Reserved");
                 break;
             default:
-                snprintf(buff, sizeof(buff), "unknown");
+                snprintf(buff, 256*sizeof(buff[0]), "unknown");
                 break;
         }
 
@@ -1409,207 +1384,205 @@ mbus_data_fixed_medium(mbus_data_fixed *data)
 /// For fixed-length frames, get a string describing the unit of the data.
 ///
 ADDAPI const char * ADDCALL
-mbus_data_fixed_unit(int medium_unit_byte)
+mbus_data_fixed_unit(int medium_unit_byte, char buff[256])
 {
-    static char buff[256];
-
     switch (medium_unit_byte & 0x3F)
     {
         case 0x00:
-            snprintf(buff, sizeof(buff), "h,m,s");
+            snprintf(buff, 256*sizeof(buff[0]), "h,m,s");
             break;
         case 0x01:
-            snprintf(buff, sizeof(buff), "D,M,Y");
+            snprintf(buff, 256*sizeof(buff[0]), "D,M,Y");
             break;
 
         case 0x02:
-            snprintf(buff, sizeof(buff), "Wh");
+            snprintf(buff, 256*sizeof(buff[0]), "Wh");
             break;
         case 0x03:
-            snprintf(buff, sizeof(buff), "10 Wh");
+            snprintf(buff, 256*sizeof(buff[0]), "10 Wh");
             break;
         case 0x04:
-            snprintf(buff, sizeof(buff), "100 Wh");
+            snprintf(buff, 256*sizeof(buff[0]), "100 Wh");
             break;
         case 0x05:
-            snprintf(buff, sizeof(buff), "kWh");
+            snprintf(buff, 256*sizeof(buff[0]), "kWh");
             break;
         case 0x06:
-            snprintf(buff, sizeof(buff), "10 kWh");
+            snprintf(buff, 256*sizeof(buff[0]), "10 kWh");
             break;
         case 0x07:
-            snprintf(buff, sizeof(buff), "100 kWh");
+            snprintf(buff, 256*sizeof(buff[0]), "100 kWh");
             break;
         case 0x08:
-            snprintf(buff, sizeof(buff), "MWh");
+            snprintf(buff, 256*sizeof(buff[0]), "MWh");
             break;
         case 0x09:
-            snprintf(buff, sizeof(buff), "10 MWh");
+            snprintf(buff, 256*sizeof(buff[0]), "10 MWh");
             break;
         case 0x0A:
-            snprintf(buff, sizeof(buff), "100 MWh");
+            snprintf(buff, 256*sizeof(buff[0]), "100 MWh");
             break;
 
         case 0x0B:
-            snprintf(buff, sizeof(buff), "kJ");
+            snprintf(buff, 256*sizeof(buff[0]), "kJ");
             break;
         case 0x0C:
-            snprintf(buff, sizeof(buff), "10 kJ");
+            snprintf(buff, 256*sizeof(buff[0]), "10 kJ");
             break;
         case 0x0E:
-            snprintf(buff, sizeof(buff), "100 kJ");
+            snprintf(buff, 256*sizeof(buff[0]), "100 kJ");
             break;
         case 0x0D:
-            snprintf(buff, sizeof(buff), "MJ");
+            snprintf(buff, 256*sizeof(buff[0]), "MJ");
             break;
         case 0x0F:
-            snprintf(buff, sizeof(buff), "10 MJ");
+            snprintf(buff, 256*sizeof(buff[0]), "10 MJ");
             break;
         case 0x10:
-            snprintf(buff, sizeof(buff), "100 MJ");
+            snprintf(buff, 256*sizeof(buff[0]), "100 MJ");
             break;
         case 0x11:
-            snprintf(buff, sizeof(buff), "GJ");
+            snprintf(buff, 256*sizeof(buff[0]), "GJ");
             break;
         case 0x12:
-            snprintf(buff, sizeof(buff), "10 GJ");
+            snprintf(buff, 256*sizeof(buff[0]), "10 GJ");
             break;
         case 0x13:
-            snprintf(buff, sizeof(buff), "100 GJ");
+            snprintf(buff, 256*sizeof(buff[0]), "100 GJ");
             break;
 
         case 0x14:
-            snprintf(buff, sizeof(buff), "W");
+            snprintf(buff, 256*sizeof(buff[0]), "W");
             break;
         case 0x15:
-            snprintf(buff, sizeof(buff), "10 W");
+            snprintf(buff, 256*sizeof(buff[0]), "10 W");
             break;
         case 0x16:
-            snprintf(buff, sizeof(buff), "100 W");
+            snprintf(buff, 256*sizeof(buff[0]), "100 W");
             break;
         case 0x17:
-            snprintf(buff, sizeof(buff), "kW");
+            snprintf(buff, 256*sizeof(buff[0]), "kW");
             break;
         case 0x18:
-            snprintf(buff, sizeof(buff), "10 kW");
+            snprintf(buff, 256*sizeof(buff[0]), "10 kW");
             break;
         case 0x19:
-            snprintf(buff, sizeof(buff), "100 kW");
+            snprintf(buff, 256*sizeof(buff[0]), "100 kW");
             break;
         case 0x1A:
-            snprintf(buff, sizeof(buff), "MW");
+            snprintf(buff, 256*sizeof(buff[0]), "MW");
             break;
         case 0x1B:
-            snprintf(buff, sizeof(buff), "10 MW");
+            snprintf(buff, 256*sizeof(buff[0]), "10 MW");
             break;
         case 0x1C:
-            snprintf(buff, sizeof(buff), "100 MW");
+            snprintf(buff, 256*sizeof(buff[0]), "100 MW");
             break;
 
         case 0x1D:
-            snprintf(buff, sizeof(buff), "kJ/h");
+            snprintf(buff, 256*sizeof(buff[0]), "kJ/h");
             break;
         case 0x1E:
-            snprintf(buff, sizeof(buff), "10 kJ/h");
+            snprintf(buff, 256*sizeof(buff[0]), "10 kJ/h");
             break;
         case 0x1F:
-            snprintf(buff, sizeof(buff), "100 kJ/h");
+            snprintf(buff, 256*sizeof(buff[0]), "100 kJ/h");
             break;
         case 0x20:
-            snprintf(buff, sizeof(buff), "MJ/h");
+            snprintf(buff, 256*sizeof(buff[0]), "MJ/h");
             break;
         case 0x21:
-            snprintf(buff, sizeof(buff), "10 MJ/h");
+            snprintf(buff, 256*sizeof(buff[0]), "10 MJ/h");
             break;
         case 0x22:
-            snprintf(buff, sizeof(buff), "100 MJ/h");
+            snprintf(buff, 256*sizeof(buff[0]), "100 MJ/h");
             break;
         case 0x23:
-            snprintf(buff, sizeof(buff), "GJ/h");
+            snprintf(buff, 256*sizeof(buff[0]), "GJ/h");
             break;
         case 0x24:
-            snprintf(buff, sizeof(buff), "10 GJ/h");
+            snprintf(buff, 256*sizeof(buff[0]), "10 GJ/h");
             break;
         case 0x25:
-            snprintf(buff, sizeof(buff), "100 GJ/h");
+            snprintf(buff, 256*sizeof(buff[0]), "100 GJ/h");
             break;
 
         case 0x26:
-            snprintf(buff, sizeof(buff), "ml");
+            snprintf(buff, 256*sizeof(buff[0]), "ml");
             break;
         case 0x27:
-            snprintf(buff, sizeof(buff), "10 ml");
+            snprintf(buff, 256*sizeof(buff[0]), "10 ml");
             break;
         case 0x28:
-            snprintf(buff, sizeof(buff), "100 ml");
+            snprintf(buff, 256*sizeof(buff[0]), "100 ml");
             break;
         case 0x29:
-            snprintf(buff, sizeof(buff), "l");
+            snprintf(buff, 256*sizeof(buff[0]), "l");
             break;
         case 0x2A:
-            snprintf(buff, sizeof(buff), "10 l");
+            snprintf(buff, 256*sizeof(buff[0]), "10 l");
             break;
         case 0x2B:
-            snprintf(buff, sizeof(buff), "100 l");
+            snprintf(buff, 256*sizeof(buff[0]), "100 l");
             break;
         case 0x2C:
-            snprintf(buff, sizeof(buff), "m^3");
+            snprintf(buff, 256*sizeof(buff[0]), "m^3");
             break;
         case 0x2D:
-            snprintf(buff, sizeof(buff), "10 m^3");
+            snprintf(buff, 256*sizeof(buff[0]), "10 m^3");
             break;
         case 0x2E:
-            snprintf(buff, sizeof(buff), "m^3");
+            snprintf(buff, 256*sizeof(buff[0]), "m^3");
             break;
 
         case 0x2F:
-            snprintf(buff, sizeof(buff), "ml/h");
+            snprintf(buff, 256*sizeof(buff[0]), "ml/h");
             break;
         case 0x30:
-            snprintf(buff, sizeof(buff), "10 ml/h");
+            snprintf(buff, 256*sizeof(buff[0]), "10 ml/h");
             break;
         case 0x31:
-            snprintf(buff, sizeof(buff), "100 ml/h");
+            snprintf(buff, 256*sizeof(buff[0]), "100 ml/h");
             break;
         case 0x32:
-            snprintf(buff, sizeof(buff), "l/h");
+            snprintf(buff, 256*sizeof(buff[0]), "l/h");
             break;
         case 0x33:
-            snprintf(buff, sizeof(buff), "10 l/h");
+            snprintf(buff, 256*sizeof(buff[0]), "10 l/h");
             break;
         case 0x34:
-            snprintf(buff, sizeof(buff), "100 l/h");
+            snprintf(buff, 256*sizeof(buff[0]), "100 l/h");
             break;
         case 0x35:
-            snprintf(buff, sizeof(buff), "m^3/h");
+            snprintf(buff, 256*sizeof(buff[0]), "m^3/h");
             break;
         case 0x36:
-            snprintf(buff, sizeof(buff), "10 m^3/h");
+            snprintf(buff, 256*sizeof(buff[0]), "10 m^3/h");
             break;
         case 0x37:
-            snprintf(buff, sizeof(buff), "100 m^3/h");
+            snprintf(buff, 256*sizeof(buff[0]), "100 m^3/h");
             break;
 
         case 0x38:
-            snprintf(buff, sizeof(buff), "1e-3 °C");
+            snprintf(buff, 256*sizeof(buff[0]), "1e-3 °C");
             break;
         case 0x39:
-            snprintf(buff, sizeof(buff), "units for HCA");
+            snprintf(buff, 256*sizeof(buff[0]), "units for HCA");
             break;
         case 0x3A:
         case 0x3B:
         case 0x3C:
         case 0x3D:
-            snprintf(buff, sizeof(buff), "reserved");
+            snprintf(buff, 256*sizeof(buff[0]), "reserved");
             break;
         case 0x3E:
-            snprintf(buff, sizeof(buff), "reserved but historic");
+            snprintf(buff, 256*sizeof(buff[0]), "reserved but historic");
             break;
         case 0x3F:
-            snprintf(buff, sizeof(buff), "without units");
+            snprintf(buff, 256*sizeof(buff[0]), "without units");
             break;
         default:
-            snprintf(buff, sizeof(buff), "unknown");
+            snprintf(buff, 256*sizeof(buff[0]), "unknown");
             break;
     }
 
@@ -1653,101 +1626,99 @@ mbus_data_fixed_unit(int medium_unit_byte)
 /// For variable-length frames, returns a string describing the medium.
 ///
 ADDAPI const char * ADDCALL
-mbus_data_variable_medium_lookup(unsigned char medium)
+mbus_data_variable_medium_lookup(unsigned char medium, char buff[256])
 {
-    static char buff[256];
-
     switch (medium)
     {
         case MBUS_VARIABLE_DATA_MEDIUM_OTHER:
-            snprintf(buff, sizeof(buff), "Other");
+            snprintf(buff, 256*sizeof(buff[0]), "Other");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_OIL:
-            snprintf(buff, sizeof(buff), "Oil");
+            snprintf(buff, 256*sizeof(buff[0]), "Oil");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_ELECTRICITY:
-            snprintf(buff, sizeof(buff), "Electricity");
+            snprintf(buff, 256*sizeof(buff[0]), "Electricity");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_GAS:
-            snprintf(buff, sizeof(buff), "Gas");
+            snprintf(buff, 256*sizeof(buff[0]), "Gas");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_HEAT_OUT:
-            snprintf(buff, sizeof(buff), "Heat: Outlet");
+            snprintf(buff, 256*sizeof(buff[0]), "Heat: Outlet");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_STEAM:
-            snprintf(buff, sizeof(buff), "Steam");
+            snprintf(buff, 256*sizeof(buff[0]), "Steam");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_HOT_WATER:
-            snprintf(buff, sizeof(buff), "Hot water");
+            snprintf(buff, 256*sizeof(buff[0]), "Hot water");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_WATER:
-            snprintf(buff, sizeof(buff), "Water");
+            snprintf(buff, 256*sizeof(buff[0]), "Water");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_HEAT_COST:
-            snprintf(buff, sizeof(buff), "Heat Cost Allocator");
+            snprintf(buff, 256*sizeof(buff[0]), "Heat Cost Allocator");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_COMPR_AIR:
-            snprintf(buff, sizeof(buff), "Compressed Air");
+            snprintf(buff, 256*sizeof(buff[0]), "Compressed Air");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_COOL_OUT:
-            snprintf(buff, sizeof(buff), "Cooling load meter: Outlet");
+            snprintf(buff, 256*sizeof(buff[0]), "Cooling load meter: Outlet");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_COOL_IN:
-            snprintf(buff, sizeof(buff), "Cooling load meter: Inlet");
+            snprintf(buff, 256*sizeof(buff[0]), "Cooling load meter: Inlet");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_HEAT_IN:
-            snprintf(buff, sizeof(buff), "Heat: Inlet");
+            snprintf(buff, 256*sizeof(buff[0]), "Heat: Inlet");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_HEAT_COOL:
-            snprintf(buff, sizeof(buff), "Heat / Cooling load meter");
+            snprintf(buff, 256*sizeof(buff[0]), "Heat / Cooling load meter");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_BUS:
-            snprintf(buff, sizeof(buff), "Bus/System");
+            snprintf(buff, 256*sizeof(buff[0]), "Bus/System");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_UNKNOWN:
-            snprintf(buff, sizeof(buff), "Unknown Medium");
+            snprintf(buff, 256*sizeof(buff[0]), "Unknown Medium");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_COLD_WATER:
-            snprintf(buff, sizeof(buff), "Cold water");
+            snprintf(buff, 256*sizeof(buff[0]), "Cold water");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_DUAL_WATER:
-            snprintf(buff, sizeof(buff), "Dual water");
+            snprintf(buff, 256*sizeof(buff[0]), "Dual water");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_PRESSURE:
-            snprintf(buff, sizeof(buff), "Pressure");
+            snprintf(buff, 256*sizeof(buff[0]), "Pressure");
             break;
 
         case MBUS_VARIABLE_DATA_MEDIUM_ADC:
-            snprintf(buff, sizeof(buff), "A/D Converter");
+            snprintf(buff, 256*sizeof(buff[0]), "A/D Converter");
             break;
 
         case 0x10: // - 0x15
         case 0x20: // - 0xFF
-            snprintf(buff, sizeof(buff), "Reserved");
+            snprintf(buff, 256*sizeof(buff[0]), "Reserved");
             break;
 
 
         // add more ...
         default:
-            snprintf(buff, sizeof(buff), "Unknown medium (0x%.2x)", medium);
+            snprintf(buff, 256*sizeof(buff[0]), "Unknown medium (0x%.2x)", medium);
             break;
     }
 
@@ -1760,10 +1731,8 @@ mbus_data_variable_medium_lookup(unsigned char medium)
 ///
 //------------------------------------------------------------------------------
 ADDAPI const char * ADDCALL
-mbus_unit_prefix(int exp)
+mbus_unit_prefix(int exp, char buff[256])
 {
-    static char buff[256];
-
     switch (exp)
     {
         case 0:
@@ -1771,43 +1740,43 @@ mbus_unit_prefix(int exp)
             break;
 
         case -3:
-            snprintf(buff, sizeof(buff), "m");
+            snprintf(buff, 256*sizeof(buff[0]), "m");
             break;
 
         case -6:
-            snprintf(buff, sizeof(buff), "my");
+            snprintf(buff, 256*sizeof(buff[0]), "my");
             break;
 
         case 1:
-            snprintf(buff, sizeof(buff), "10 ");
+            snprintf(buff, 256*sizeof(buff[0]), "10 ");
             break;
 
         case 2:
-            snprintf(buff, sizeof(buff), "100 ");
+            snprintf(buff, 256*sizeof(buff[0]), "100 ");
             break;
 
         case 3:
-            snprintf(buff, sizeof(buff), "k");
+            snprintf(buff, 256*sizeof(buff[0]), "k");
             break;
 
         case 4:
-            snprintf(buff, sizeof(buff), "10 k");
+            snprintf(buff, 256*sizeof(buff[0]), "10 k");
             break;
 
         case 5:
-            snprintf(buff, sizeof(buff), "100 k");
+            snprintf(buff, 256*sizeof(buff[0]), "100 k");
             break;
 
         case 6:
-            snprintf(buff, sizeof(buff), "M");
+            snprintf(buff, 256*sizeof(buff[0]), "M");
             break;
 
         case 9:
-            snprintf(buff, sizeof(buff), "T");
+            snprintf(buff, 256*sizeof(buff[0]), "T");
             break;
 
         default:
-            snprintf(buff, sizeof(buff), "1e%d ", exp);
+            snprintf(buff, 256*sizeof(buff[0]), "1e%d ", exp);
     }
 
     return buff;
@@ -1870,9 +1839,9 @@ mbus_dif_datalength_lookup(unsigned char dif)
 /// See section 8.4.3  Codes for Value Information Field (VIF) in the M-BUS spec
 //------------------------------------------------------------------------------
 ADDAPI const char * ADDCALL
-mbus_vif_unit_lookup(unsigned char vif)
+mbus_vif_unit_lookup(unsigned char vif, char buff[256])
 {
-    static char buff[256];
+	char prefix[256];
     int n;
 
     switch (vif & MBUS_DIB_VIF_WITHOUT_EXTENSION) // ignore the extension bit in this selection
@@ -1887,7 +1856,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x00+6:
         case 0x00+7:
             n = (vif & 0x07) - 3;
-            snprintf(buff, sizeof(buff), "Energy (%sWh)", mbus_unit_prefix(n));
+			snprintf(buff, 256*sizeof(buff[0]), "Energy (%sWh)", mbus_unit_prefix(n, prefix));
             break;
 
         // 0000 1nnn          Energy       10(nnn)J     (0.001kJ to 10000kJ)
@@ -1901,7 +1870,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x08+7:
 
             n = (vif & 0x07);
-            snprintf(buff, sizeof(buff), "Energy (%sJ)", mbus_unit_prefix(n));
+			snprintf(buff, 256*sizeof(buff[0]), "Energy (%sJ)", mbus_unit_prefix(n, prefix));
 
             break;
 
@@ -1916,7 +1885,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x18+7:
 
             n = (vif & 0x07);
-            snprintf(buff, sizeof(buff), "Mass (%skg)", mbus_unit_prefix(n-3));
+			snprintf(buff, 256*sizeof(buff[0]), "Mass (%skg)", mbus_unit_prefix(n - 3, prefix));
 
             break;
 
@@ -1931,8 +1900,8 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x28+7:
 
             n = (vif & 0x07);
-            snprintf(buff, sizeof(buff), "Power (%sW)", mbus_unit_prefix(n-3));
-            //snprintf(buff, sizeof(buff), "Power (10^%d W)", n-3);
+			snprintf(buff, 256*sizeof(buff[0]), "Power (%sW)", mbus_unit_prefix(n - 3, prefix));
+            //snprintf(buff, 256*sizeof(buff[0]), "Power (10^%d W)", n-3);
 
             break;
 
@@ -1947,7 +1916,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x30+7:
 
             n = (vif & 0x07);
-            snprintf(buff, sizeof(buff), "Power (%sJ/h)", mbus_unit_prefix(n));
+			snprintf(buff, 256*sizeof(buff[0]), "Power (%sJ/h)", mbus_unit_prefix(n, prefix));
 
             break;
 
@@ -1962,7 +1931,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x10+7:
 
             n = (vif & 0x07);
-            snprintf(buff, sizeof(buff), "Volume (%s m^3)", mbus_unit_prefix(n-6));
+			snprintf(buff, 256*sizeof(buff[0]), "Volume (%s m^3)", mbus_unit_prefix(n - 6, prefix));
 
             break;
 
@@ -1977,7 +1946,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x38+7:
 
             n = (vif & 0x07);
-            snprintf(buff, sizeof(buff), "Volume flow (%s m^3/h)", mbus_unit_prefix(n-6));
+			snprintf(buff, 256*sizeof(buff[0]), "Volume flow (%s m^3/h)", mbus_unit_prefix(n - 6, prefix));
 
             break;
 
@@ -1992,7 +1961,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x40+7:
 
             n = (vif & 0x07);
-            snprintf(buff, sizeof(buff), "Volume flow (%s m^3/min)", mbus_unit_prefix(n-7));
+			snprintf(buff, 256*sizeof(buff[0]), "Volume flow (%s m^3/min)", mbus_unit_prefix(n - 7, prefix));
 
             break;
 
@@ -2007,7 +1976,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x48+7:
 
             n = (vif & 0x07);
-            snprintf(buff, sizeof(buff), "Volume flow (%s m^3/s)", mbus_unit_prefix(n-9));
+			snprintf(buff, 256*sizeof(buff[0]), "Volume flow (%s m^3/s)", mbus_unit_prefix(n - 9, prefix));
 
             break;
 
@@ -2022,7 +1991,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x50+7:
 
             n = (vif & 0x07);
-            snprintf(buff, sizeof(buff), "Mass flow (%s kg/h)", mbus_unit_prefix(n-3));
+			snprintf(buff, 256*sizeof(buff[0]), "Mass flow (%s kg/h)", mbus_unit_prefix(n - 3, prefix));
 
             break;
 
@@ -2033,7 +2002,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x58+3:
 
             n = (vif & 0x03);
-            snprintf(buff, sizeof(buff), "Flow temperature (%sdeg C)", mbus_unit_prefix(n-3));
+			snprintf(buff, 256*sizeof(buff[0]), "Flow temperature (%sdeg C)", mbus_unit_prefix(n - 3, prefix));
 
             break;
 
@@ -2044,7 +2013,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x5C+3:
 
             n = (vif & 0x03);
-            snprintf(buff, sizeof(buff), "Return temperature (%sdeg C)", mbus_unit_prefix(n-3));
+			snprintf(buff, 256*sizeof(buff[0]), "Return temperature (%sdeg C)", mbus_unit_prefix(n - 3, prefix));
 
             break;
 
@@ -2055,7 +2024,7 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x68+3:
 
             n = (vif & 0x03);
-            snprintf(buff, sizeof(buff), "Pressure (%s bar)", mbus_unit_prefix(n-3));
+			snprintf(buff, 256*sizeof(buff[0]), "Pressure (%s bar)", mbus_unit_prefix(n - 3, prefix));
 
             break;
 
@@ -2087,27 +2056,27 @@ mbus_vif_unit_lookup(unsigned char vif)
                 int offset;
 
                 if      ((vif & 0x7C) == 0x20)
-                    offset = snprintf(buff, sizeof(buff), "On time ");
+                    offset = snprintf(buff, 256*sizeof(buff[0]), "On time ");
                 else if ((vif & 0x7C) == 0x24)
-                    offset = snprintf(buff, sizeof(buff), "Operating time ");
+                    offset = snprintf(buff, 256*sizeof(buff[0]), "Operating time ");
                 else if ((vif & 0x7C) == 0x70)
-                    offset = snprintf(buff, sizeof(buff), "Averaging Duration ");
+                    offset = snprintf(buff, 256*sizeof(buff[0]), "Averaging Duration ");
                 else
-                    offset = snprintf(buff, sizeof(buff), "Actuality Duration ");
+                    offset = snprintf(buff, 256*sizeof(buff[0]), "Actuality Duration ");
 
                 switch (vif & 0x03)
                 {
                     case 0x00:
-                        snprintf(&buff[offset], sizeof(buff)-offset, "(seconds)");
+                        snprintf(&buff[offset], 256*sizeof(buff[0])-offset, "(seconds)");
                         break;
                     case 0x01:
-                        snprintf(&buff[offset], sizeof(buff)-offset, "(minutes)");
+                        snprintf(&buff[offset], 256*sizeof(buff[0])-offset, "(minutes)");
                         break;
                     case 0x02:
-                        snprintf(&buff[offset], sizeof(buff)-offset, "(hours)");
+                        snprintf(&buff[offset], 256*sizeof(buff[0])-offset, "(hours)");
                         break;
                     case 0x03:
-                        snprintf(&buff[offset], sizeof(buff)-offset, "(days)");
+                        snprintf(&buff[offset], 256*sizeof(buff[0])-offset, "(days)");
                         break;
                 }
             }
@@ -2122,9 +2091,9 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x6C+1:
 
             if (vif & 0x1)
-                snprintf(buff, sizeof(buff), "Time Point (time & date)");
+                snprintf(buff, 256*sizeof(buff[0]), "Time Point (time & date)");
             else
-                snprintf(buff, sizeof(buff), "Time Point (date)");
+                snprintf(buff, 256*sizeof(buff[0]), "Time Point (date)");
 
             break;
 
@@ -2136,7 +2105,7 @@ mbus_vif_unit_lookup(unsigned char vif)
 
             n = (vif & 0x03);
 
-            snprintf(buff, sizeof(buff), "Temperature Difference (%s deg C)", mbus_unit_prefix(n-3));
+			snprintf(buff, 256*sizeof(buff[0]), "Temperature Difference (%s deg C)", mbus_unit_prefix(n - 3, prefix));
 
             break;
 
@@ -2147,43 +2116,43 @@ mbus_vif_unit_lookup(unsigned char vif)
         case 0x64+3:
 
             n = (vif & 0x03);
-            snprintf(buff, sizeof(buff), "External temperature (%s deg C)", mbus_unit_prefix(n-3));
+			snprintf(buff, 256*sizeof(buff[0]), "External temperature (%s deg C)", mbus_unit_prefix(n - 3, prefix));
 
             break;
 
         // E110 1110 Units for H.C.A. dimensionless
         case 0x6E:
-            snprintf(buff, sizeof(buff), "Units for H.C.A.");
+            snprintf(buff, 256*sizeof(buff[0]), "Units for H.C.A.");
             break;
 
         // E110 1111 Reserved
         case 0x6F:
-            snprintf(buff, sizeof(buff), "Reserved");
+            snprintf(buff, 256*sizeof(buff[0]), "Reserved");
             break;
 
         // Custom VIF in the following string: never reached...
         case 0x7C:
-            snprintf(buff, sizeof(buff), "Custom VIF");
+            snprintf(buff, 256*sizeof(buff[0]), "Custom VIF");
             break;
 
         // Fabrication No
         case 0x78:
-            snprintf(buff, sizeof(buff), "Fabrication number");
+            snprintf(buff, 256*sizeof(buff[0]), "Fabrication number");
             break;
 
         // Bus Address
         case 0x7A:
-            snprintf(buff, sizeof(buff), "Bus Address");
+            snprintf(buff, 256*sizeof(buff[0]), "Bus Address");
             break;
 
         // Manufacturer specific: 7Fh / FF
         case 0x7F:
         case 0xFF:
-            snprintf(buff, sizeof(buff), "Manufacturer specific");
+            snprintf(buff, 256*sizeof(buff[0]), "Manufacturer specific");
             break;
 
         default:
-            snprintf(buff, sizeof(buff), "Unknown (VIF=0x%.2X)", vif);
+            snprintf(buff, 256*sizeof(buff[0]), "Unknown (VIF=0x%.2X)", vif);
             break;
     }
 
@@ -2198,54 +2167,52 @@ mbus_vif_unit_lookup(unsigned char vif)
 // See section 6.6  Codes for general application errors in the M-BUS spec
 //------------------------------------------------------------------------------
 ADDAPI const char * ADDCALL
-mbus_data_error_lookup(int error)
+mbus_data_error_lookup(int error, char buff[256])
 {
-    static char buff[256];
-
     switch (error)
     {
         case MBUS_ERROR_DATA_UNSPECIFIED:
-            snprintf(buff, sizeof(buff), "Unspecified error");
+            snprintf(buff, 256*sizeof(buff[0]), "Unspecified error");
             break;
 
         case MBUS_ERROR_DATA_UNIMPLEMENTED_CI:
-            snprintf(buff, sizeof(buff), "Unimplemented CI-Field");
+            snprintf(buff, 256*sizeof(buff[0]), "Unimplemented CI-Field");
             break;
 
         case MBUS_ERROR_DATA_BUFFER_TOO_LONG:
-            snprintf(buff, sizeof(buff), "Buffer too long, truncated");
+            snprintf(buff, 256*sizeof(buff[0]), "Buffer too long, truncated");
             break;
 
         case MBUS_ERROR_DATA_TOO_MANY_RECORDS:
-            snprintf(buff, sizeof(buff), "Too many records");
+            snprintf(buff, 256*sizeof(buff[0]), "Too many records");
             break;
 
         case MBUS_ERROR_DATA_PREMATURE_END:
-            snprintf(buff, sizeof(buff), "Premature end of record");
+            snprintf(buff, 256*sizeof(buff[0]), "Premature end of record");
             break;
 
         case MBUS_ERROR_DATA_TOO_MANY_DIFES:
-            snprintf(buff, sizeof(buff), "More than 10 DIFE´s");
+            snprintf(buff, 256*sizeof(buff[0]), "More than 10 DIFE´s");
             break;
 
         case MBUS_ERROR_DATA_TOO_MANY_VIFES:
-            snprintf(buff, sizeof(buff), "More than 10 VIFE´s");
+            snprintf(buff, 256*sizeof(buff[0]), "More than 10 VIFE´s");
             break;
 
         case MBUS_ERROR_DATA_RESERVED:
-            snprintf(buff, sizeof(buff), "Reserved");
+            snprintf(buff, 256*sizeof(buff[0]), "Reserved");
             break;
 
         case MBUS_ERROR_DATA_APPLICATION_BUSY:
-            snprintf(buff, sizeof(buff), "Application busy");
+            snprintf(buff, 256*sizeof(buff[0]), "Application busy");
             break;
 
         case MBUS_ERROR_DATA_TOO_MANY_READOUTS:
-            snprintf(buff, sizeof(buff), "Too many readouts");
+            snprintf(buff, 256*sizeof(buff[0]), "Too many readouts");
             break;
 
         default:
-            snprintf(buff, sizeof(buff), "Unknown error (0x%.2X)", error);
+            snprintf(buff, 256*sizeof(buff[0]), "Unknown error (0x%.2X)", error);
             break;
     }
 
@@ -2267,9 +2234,9 @@ mbus_data_error_lookup(int error)
 //    E000 1111      Software version #
 //------------------------------------------------------------------------------
 ADDAPI const char * ADDCALL
-mbus_vib_unit_lookup(mbus_value_information_block *vib)
+mbus_vib_unit_lookup(mbus_value_information_block *vib, char buff[256], char vif_unit[256])
 {
-    static char buff[256];
+	char prefix[256];
     int n;
 
     if (vib == NULL)
@@ -2279,116 +2246,116 @@ mbus_vib_unit_lookup(mbus_value_information_block *vib)
     {
         if (vib->nvife == 0)
         {
-            snprintf(buff, sizeof(buff), "Missing VIF extension");
+			snprintf(buff, 256 * sizeof(buff[0]), "Missing VIF extension");
         }
         else if (vib->vife[0] == 0x08 || vib->vife[0] == 0x88)
         {
             // E000 1000
-            snprintf(buff, sizeof(buff), "Access Number (transmission count)");
+			snprintf(buff, 256 * sizeof(buff[0]), "Access Number (transmission count)");
         }
         else if (vib->vife[0] == 0x09|| vib->vife[0] == 0x89)
         {
             // E000 1001
-            snprintf(buff, sizeof(buff), "Medium (as in fixed header)");
+			snprintf(buff, 256 * sizeof(buff[0]), "Medium (as in fixed header)");
         }
         else if (vib->vife[0] == 0x0A || vib->vife[0] == 0x8A)
         {
             // E000 1010
-            snprintf(buff, sizeof(buff), "Manufacturer (as in fixed header)");
+			snprintf(buff, 256 * sizeof(buff[0]), "Manufacturer (as in fixed header)");
         }
         else if (vib->vife[0] == 0x0B || vib->vife[0] == 0x8B)
         {
             // E000 1010
-            snprintf(buff, sizeof(buff), "Parameter set identification");
+			snprintf(buff, 256 * sizeof(buff[0]), "Parameter set identification");
         }
         else if (vib->vife[0] == 0x0C || vib->vife[0] == 0x8C)
         {
             // E000 1100
-            snprintf(buff, sizeof(buff), "Model / Version");
+			snprintf(buff, 256 * sizeof(buff[0]), "Model / Version");
         }
         else if (vib->vife[0] == 0x0D || vib->vife[0] == 0x8D)
         {
             // E000 1100
-            snprintf(buff, sizeof(buff), "Hardware version");
+			snprintf(buff, 256 * sizeof(buff[0]), "Hardware version");
         }
         else if (vib->vife[0] == 0x0E || vib->vife[0] == 0x8E)
         {
             // E000 1101
-            snprintf(buff, sizeof(buff), "Firmware version");
+			snprintf(buff, 256 * sizeof(buff[0]), "Firmware version");
         }
         else if (vib->vife[0] == 0x0F || vib->vife[0] == 0x8F)
         {
             // E000 1101
-            snprintf(buff, sizeof(buff), "Software version");
+			snprintf(buff, 256 * sizeof(buff[0]), "Software version");
         }
         else if (vib->vife[0] == 0x16)
         {
             // VIFE = E001 0110 Password
-            snprintf(buff, sizeof(buff), "Password");
+			snprintf(buff, 256 * sizeof(buff[0]), "Password");
         }
         else if (vib->vife[0] == 0x17 || vib->vife[0] == 0x97)
         {
             // VIFE = E001 0111 Error flags
-            snprintf(buff, sizeof(buff), "Error flags");
+			snprintf(buff, 256 * sizeof(buff[0]), "Error flags");
         }
         else if (vib->vife[0] == 0x10)
         {
             // VIFE = E001 0000 Customer location
-            snprintf(buff, sizeof(buff), "Customer location");
+			snprintf(buff, 256 * sizeof(buff[0]), "Customer location");
         }
         else if (vib->vife[0] == 0x11)
         {
             // VIFE = E001 0001 Customer
-            snprintf(buff, sizeof(buff), "Customer");
+			snprintf(buff, 256 * sizeof(buff[0]), "Customer");
         }
         else if (vib->vife[0] == 0x1A)
         {
             // VIFE = E001 1010 Digital output (binary)
-            snprintf(buff, sizeof(buff), "Digital output (binary)");
+			snprintf(buff, 256 * sizeof(buff[0]), "Digital output (binary)");
         }
         else if (vib->vife[0] == 0x1B)
         {
             // VIFE = E001 1011 Digital input (binary)
-            snprintf(buff, sizeof(buff), "Digital input (binary)");
+			snprintf(buff, 256 * sizeof(buff[0]), "Digital input (binary)");
         }
         else if ((vib->vife[0] & 0x70) == 0x40)
         {
             // VIFE = E100 nnnn 10^(nnnn-9) V
             n = (vib->vife[0] & 0x0F);
-            snprintf(buff, sizeof(buff), "%s V", mbus_unit_prefix(n-9));
+			snprintf(buff, 256 * sizeof(buff[0]), "%s V", mbus_unit_prefix(n - 9, prefix));
         }
         else if ((vib->vife[0] & 0x70) == 0x50)
         {
             // VIFE = E101 nnnn 10nnnn-12 A
             n = (vib->vife[0] & 0x0F);
-            snprintf(buff, sizeof(buff), "%s A", mbus_unit_prefix(n-12));
+			snprintf(buff, 256 * sizeof(buff[0]), "%s A", mbus_unit_prefix(n - 12, prefix));
         }
         else if ((vib->vife[0] & 0xF0) == 0x70)
         {
             // VIFE = E111 nnn Reserved
-            snprintf(buff, sizeof(buff), "Reserved VIF extension");
+			snprintf(buff, 256 * sizeof(buff[0]), "Reserved VIF extension");
         }
         else
         {
-            snprintf(buff, sizeof(buff), "Unrecognized VIF extension: 0x%.2x", vib->vife[0]);
+			snprintf(buff, 256 * sizeof(buff[0]), "Unrecognized VIF extension: 0x%.2x", vib->vife[0]);
         }
         return buff;
     }
     else if (vib->vif == 0x7C)
     {
         // custom VIF
-        snprintf(buff, sizeof(buff), "%s", vib->custom_vif);
+		snprintf(buff, 256 * sizeof(buff[0]), "%s", vib->custom_vif);
         return buff;
     }
     else if (vib->vif == 0xFC && (vib->vife[0] & 0x78) == 0x70)
     {
         // custom VIF
         n = (vib->vife[0] & 0x07);
-        snprintf(buff, sizeof(buff), "%s %s", mbus_unit_prefix(n-6), vib->custom_vif);
+		snprintf(buff, 256 * sizeof(buff[0]), "%s %s", mbus_unit_prefix(n - 6, prefix), vib->custom_vif);
         return buff;
     }
 
-    return mbus_vif_unit_lookup(vib->vif); // no extention, use VIF
+    return mbus_vif_unit_lookup(vib->vif, vif_unit); // no extention, use VIF
 }
 
 //------------------------------------------------------------------------------
@@ -2443,7 +2410,7 @@ mbus_data_record_decode(mbus_data_record *record)
 
                 mbus_data_int_decode(record->data, 1, &int_val);
 
-                snprintf(buff, sizeof(buff), "%d", int_val);
+                snprintf(buff, 768*sizeof(buff[0]), "%d", int_val);
 
                 if (debug)
                     printf("%s: DIF 0x%.2x was decoded using 1 byte integer\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
@@ -2457,7 +2424,7 @@ mbus_data_record_decode(mbus_data_record *record)
                 if (vif == 0x6C)
                 {
                     mbus_data_tm_decode(&time, record->data, 2);
-                    snprintf(buff, sizeof(buff), "%04d-%02d-%02d",
+                    snprintf(buff, 768*sizeof(buff[0]), "%04d-%02d-%02d",
                                                  (time.tm_year + 1900),
                                                  (time.tm_mon + 1),
                                                   time.tm_mday);
@@ -2465,7 +2432,7 @@ mbus_data_record_decode(mbus_data_record *record)
                 else  // 2 byte integer
                 {
                     mbus_data_int_decode(record->data, 2, &int_val);
-                    snprintf(buff, sizeof(buff), "%d", int_val);
+                    snprintf(buff, 768*sizeof(buff[0]), "%d", int_val);
                     if (debug)
                         printf("%s: DIF 0x%.2x was decoded using 2 byte integer\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
 
@@ -2477,7 +2444,7 @@ mbus_data_record_decode(mbus_data_record *record)
 
                 mbus_data_int_decode(record->data, 3, &int_val);
 
-                snprintf(buff, sizeof(buff), "%d", int_val);
+                snprintf(buff, 768*sizeof(buff[0]), "%d", int_val);
 
                 if (debug)
                     printf("%s: DIF 0x%.2x was decoded using 3 byte integer\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
@@ -2494,7 +2461,7 @@ mbus_data_record_decode(mbus_data_record *record)
                     ((record->drh.vib.vif == 0xFD) && (vife == 0x70)))
                 {
                     mbus_data_tm_decode(&time, record->data, 4);
-                    snprintf(buff, sizeof(buff), "%04d-%02d-%02dT%02d:%02d:%02d",
+                    snprintf(buff, 768*sizeof(buff[0]), "%04d-%02d-%02dT%02d:%02d:%02d",
                                                  (time.tm_year + 1900),
                                                  (time.tm_mon + 1),
                                                   time.tm_mday,
@@ -2505,7 +2472,7 @@ mbus_data_record_decode(mbus_data_record *record)
                 else  // 4 byte integer
                 {
                     mbus_data_int_decode(record->data, 4, &int_val);
-                    snprintf(buff, sizeof(buff), "%d", int_val);
+                    snprintf(buff, 768*sizeof(buff[0]), "%d", int_val);
                 }
 
                 if (debug)
@@ -2517,7 +2484,7 @@ mbus_data_record_decode(mbus_data_record *record)
 
                 float_val = mbus_data_float_decode(record->data);
 
-                snprintf(buff, sizeof(buff), "%f", float_val);
+                snprintf(buff, 768*sizeof(buff[0]), "%f", float_val);
 
                 if (debug)
                     printf("%s: DIF 0x%.2x was decoded using 4 byte Real\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
@@ -2534,7 +2501,7 @@ mbus_data_record_decode(mbus_data_record *record)
                     ((record->drh.vib.vif == 0xFD) && (vife == 0x70)))
                 {
                     mbus_data_tm_decode(&time, record->data, 6);
-                    snprintf(buff, sizeof(buff), "%04d-%02d-%02dT%02d:%02d:%02d",
+                    snprintf(buff, 768*sizeof(buff[0]), "%04d-%02d-%02dT%02d:%02d:%02d",
                                                  (time.tm_year + 1900),
                                                  (time.tm_mon + 1),
                                                   time.tm_mday,
@@ -2545,7 +2512,7 @@ mbus_data_record_decode(mbus_data_record *record)
                 else  // 6 byte integer
                 {
                     mbus_data_long_long_decode(record->data, 6, &long_long_val);
-                    snprintf(buff, sizeof(buff), "%lld", long_long_val);
+                    snprintf(buff, 768*sizeof(buff[0]), "%lld", long_long_val);
                 }
 
                 if (debug)
@@ -2557,7 +2524,7 @@ mbus_data_record_decode(mbus_data_record *record)
 
                 mbus_data_long_long_decode(record->data, 8, &long_long_val);
 
-                snprintf(buff, sizeof(buff), "%lld", long_long_val);
+                snprintf(buff, 768*sizeof(buff[0]), "%lld", long_long_val);
 
                 if (debug)
                     printf("%s: DIF 0x%.2x was decoded using 8 byte integer\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
@@ -2569,7 +2536,7 @@ mbus_data_record_decode(mbus_data_record *record)
             case 0x09: // 2 digit BCD (8 bit)
 
                 int_val = (int)mbus_data_bcd_decode(record->data, 1);
-                snprintf(buff, sizeof(buff), "%d", int_val);
+                snprintf(buff, 768*sizeof(buff[0]), "%d", int_val);
 
                 if (debug)
                     printf("%s: DIF 0x%.2x was decoded using 2 digit BCD\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
@@ -2579,7 +2546,7 @@ mbus_data_record_decode(mbus_data_record *record)
             case 0x0A: // 4 digit BCD (16 bit)
 
                 int_val = (int)mbus_data_bcd_decode(record->data, 2);
-                snprintf(buff, sizeof(buff), "%d", int_val);
+                snprintf(buff, 768*sizeof(buff[0]), "%d", int_val);
 
                 if (debug)
                     printf("%s: DIF 0x%.2x was decoded using 4 digit BCD\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
@@ -2589,7 +2556,7 @@ mbus_data_record_decode(mbus_data_record *record)
             case 0x0B: // 6 digit BCD (24 bit)
 
                 int_val = (int)mbus_data_bcd_decode(record->data, 3);
-                snprintf(buff, sizeof(buff), "%d", int_val);
+                snprintf(buff, 768*sizeof(buff[0]), "%d", int_val);
 
                 if (debug)
                     printf("%s: DIF 0x%.2x was decoded using 6 digit BCD\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
@@ -2599,7 +2566,7 @@ mbus_data_record_decode(mbus_data_record *record)
             case 0x0C: // 8 digit BCD (32 bit)
 
                 int_val = (int)mbus_data_bcd_decode(record->data, 4);
-                snprintf(buff, sizeof(buff), "%d", int_val);
+                snprintf(buff, 768*sizeof(buff[0]), "%d", int_val);
 
                 if (debug)
                     printf("%s: DIF 0x%.2x was decoded using 8 digit BCD\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
@@ -2609,7 +2576,7 @@ mbus_data_record_decode(mbus_data_record *record)
             case 0x0E: // 12 digit BCD (48 bit)
 
                 long_long_val = mbus_data_bcd_decode(record->data, 6);
-                snprintf(buff, sizeof(buff), "%lld", long_long_val);
+                snprintf(buff, 768*sizeof(buff[0]), "%lld", long_long_val);
 
                 if (debug)
                     printf("%s: DIF 0x%.2x was decoded using 12 digit BCD\n", __PRETTY_FUNCTION__, record->drh.dib.dif);
@@ -2618,7 +2585,7 @@ mbus_data_record_decode(mbus_data_record *record)
 
             case 0x0F: // special functions
 
-                mbus_data_bin_decode(buff, record->data, record->data_len, sizeof(buff));
+                mbus_data_bin_decode(buff, record->data, record->data_len, 768*sizeof(buff[0]));
                 break;
 
             case 0x0D: // variable length
@@ -2631,7 +2598,7 @@ mbus_data_record_decode(mbus_data_record *record)
 
             default:
 
-                snprintf(buff, sizeof(buff), "Unknown DIF (0x%.2x)", record->drh.dib.dif);
+                snprintf(buff, 768*sizeof(buff[0]), "Unknown DIF (0x%.2x)", record->drh.dib.dif);
                 break;
         }
 
@@ -2643,14 +2610,15 @@ mbus_data_record_decode(mbus_data_record *record)
 //------------------------------------------------------------------------------
 /// Return the unit description for a variable-length data record
 //------------------------------------------------------------------------------
-const char *
-mbus_data_record_unit(mbus_data_record *record)
+static const char *
+mbus_data_record_unit(mbus_data_record *record, char buff[128])
 {
-    static char buff[128];
+	char vif_unit[256];
+	char vib_unit[256];
 
     if (record)
     {
-        snprintf(buff, sizeof(buff), "%s", mbus_vib_unit_lookup(&(record->drh.vib)));
+		snprintf(buff, 128*sizeof(buff[0]), "%s", mbus_vib_unit_lookup(&(record->drh.vib), vib_unit, vif_unit));
 
         return buff;
     }
@@ -2668,7 +2636,7 @@ mbus_data_record_value(mbus_data_record *record)
 
     if (record)
     {
-        snprintf(buff, sizeof(buff), "%s", mbus_data_record_decode(record));
+        snprintf(buff, 768*sizeof(buff[0]), "%s", mbus_data_record_decode(record));
 
         return buff;
     }
@@ -2761,23 +2729,23 @@ mbus_data_record_function(mbus_data_record *record)
         switch (record->drh.dib.dif & MBUS_DATA_RECORD_DIF_MASK_FUNCTION)
         {
             case 0x00:
-                snprintf(buff, sizeof(buff), "Instantaneous value");
+                snprintf(buff, 128*sizeof(buff[0]), "Instantaneous value");
                 break;
 
             case 0x10:
-                snprintf(buff, sizeof(buff), "Maximum value");
+                snprintf(buff, 128*sizeof(buff[0]), "Maximum value");
                 break;
 
             case 0x20:
-                snprintf(buff, sizeof(buff), "Minimum value");
+                snprintf(buff, 128*sizeof(buff[0]), "Minimum value");
                 break;
 
             case 0x30:
-                snprintf(buff, sizeof(buff), "Value during error state");
+                snprintf(buff, 128*sizeof(buff[0]), "Value during error state");
                 break;
 
             default:
-                snprintf(buff, sizeof(buff), "unknown");
+                snprintf(buff, 128*sizeof(buff[0]), "unknown");
         }
 
         return buff;
@@ -2791,11 +2759,9 @@ mbus_data_record_function(mbus_data_record *record)
 /// For fixed-length frames, return a string describing the type of value (stored or actual)
 ///
 ADDAPI const char * ADDCALL
-mbus_data_fixed_function(int status)
+mbus_data_fixed_function(int status, char buff[128])
 {
-    static char buff[128];
-
-    snprintf(buff, sizeof(buff), "%s",
+    snprintf(buff, 128*sizeof(buff[0]), "%s",
             (status & MBUS_DATA_FIXED_STATUS_DATE_MASK) == MBUS_DATA_FIXED_STATUS_DATE_STORED ?
             "Stored value" : "Actual value" );
 
@@ -3597,6 +3563,9 @@ mbus_frame_data_print(mbus_frame_data *data)
 ADDAPI int ADDCALL
 mbus_data_variable_header_print(mbus_data_variable_header *header)
 {
+	char m_str[4];
+	char variable_medium[256];
+
     if (header)
     {
         printf("%s: ID           = %lld\n", __PRETTY_FUNCTION__,
@@ -3606,10 +3575,10 @@ mbus_data_variable_header_print(mbus_data_variable_header *header)
                header->manufacturer[1], header->manufacturer[0]);
 
         printf("%s: Manufacturer = %s\n", __PRETTY_FUNCTION__,
-               mbus_decode_manufacturer(header->manufacturer[0], header->manufacturer[1]));
+			mbus_decode_manufacturer(header->manufacturer[0], header->manufacturer[1], m_str));
 
         printf("%s: Version      = 0x%.2X\n", __PRETTY_FUNCTION__, header->version);
-        printf("%s: Medium       = %s (0x%.2X)\n", __PRETTY_FUNCTION__, mbus_data_variable_medium_lookup(header->medium), header->medium);
+		printf("%s: Medium       = %s (0x%.2X)\n", __PRETTY_FUNCTION__, mbus_data_variable_medium_lookup(header->medium, variable_medium), header->medium);
         printf("%s: Access #     = 0x%.2X\n", __PRETTY_FUNCTION__, header->access_no);
         printf("%s: Status       = 0x%.2X\n", __PRETTY_FUNCTION__, header->status);
         printf("%s: Signature    = 0x%.2X%.2X\n", __PRETTY_FUNCTION__,
@@ -3697,6 +3666,9 @@ mbus_data_variable_print(mbus_data_variable *data)
 ADDAPI int ADDCALL
 mbus_data_fixed_print(mbus_data_fixed *data)
 {
+	char fixed_medium[256];
+	char fixed_unit[256];
+	char fixed_function[128];
     int val;
 
     if (data)
@@ -3704,10 +3676,10 @@ mbus_data_fixed_print(mbus_data_fixed *data)
         printf("%s: ID       = %lld\n", __PRETTY_FUNCTION__, mbus_data_bcd_decode(data->id_bcd, 4));
         printf("%s: Access # = 0x%.2X\n", __PRETTY_FUNCTION__, data->tx_cnt);
         printf("%s: Status   = 0x%.2X\n", __PRETTY_FUNCTION__, data->status);
-        printf("%s: Function = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_function(data->status));
+        printf("%s: Function = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_function(data->status, fixed_function));
 
-        printf("%s: Medium1  = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_medium(data));
-        printf("%s: Unit1    = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_unit(data->cnt1_type));
+		printf("%s: Medium1  = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_medium(data, fixed_medium));
+        printf("%s: Unit1    = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_unit(data->cnt1_type, fixed_unit));
         if ((data->status & MBUS_DATA_FIXED_STATUS_FORMAT_MASK) == MBUS_DATA_FIXED_STATUS_FORMAT_BCD)
         {
             printf("%s: Counter1 = %lld\n", __PRETTY_FUNCTION__, mbus_data_bcd_decode(data->cnt1_val, 4));
@@ -3718,8 +3690,8 @@ mbus_data_fixed_print(mbus_data_fixed *data)
             printf("%s: Counter1 = %d\n", __PRETTY_FUNCTION__, val);
         }
 
-        printf("%s: Medium2  = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_medium(data));
-        printf("%s: Unit2    = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_unit(data->cnt2_type));
+		printf("%s: Medium2  = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_medium(data, fixed_medium));
+        printf("%s: Unit2    = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_unit(data->cnt2_type, fixed_unit));
         if ((data->status & MBUS_DATA_FIXED_STATUS_FORMAT_MASK) == MBUS_DATA_FIXED_STATUS_FORMAT_BCD)
         {
             printf("%s: Counter2 = %lld\n", __PRETTY_FUNCTION__, mbus_data_bcd_decode(data->cnt2_val, 4));
@@ -3738,7 +3710,8 @@ ADDAPI void ADDCALL
 mbus_hex_dump(const char *label, const char *buff, size_t len)
 {
     time_t rawtime;
-    struct tm * timeinfo;
+	struct tm _timeinfo;
+	struct tm * timeinfo = &_timeinfo;
     char timestamp[21];
     size_t i;
 
@@ -3746,7 +3719,7 @@ mbus_hex_dump(const char *label, const char *buff, size_t len)
         return;
 
     time ( &rawtime );
-    timeinfo = gmtime ( &rawtime );
+    gmtime_r ( &rawtime, timeinfo );
 
     strftime(timestamp,20,"%Y-%m-%d %H:%M:%S",timeinfo);
     fprintf(stderr, "[%s] %s (%03zu):", timestamp, label, len);
@@ -3845,30 +3818,33 @@ ADDAPI char * ADDCALL
 mbus_data_variable_header_xml(mbus_data_variable_header *header)
 {
     static char buff[8192];
+	char product_name[128];
+	char variable_medium[256];
+	char m_str[4];
     char str_encoded[768];
     size_t len = 0;
 
     if (header)
     {
-        len += snprintf(&buff[len], sizeof(buff) - len, "    <SlaveInformation>\n");
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "    <SlaveInformation>\n");
 
-        len += snprintf(&buff[len], sizeof(buff) - len, "        <Id>%lld</Id>\n", mbus_data_bcd_decode(header->id_bcd, 4));
-        len += snprintf(&buff[len], sizeof(buff) - len, "        <Manufacturer>%s</Manufacturer>\n",
-                mbus_decode_manufacturer(header->manufacturer[0], header->manufacturer[1]));
-        len += snprintf(&buff[len], sizeof(buff) - len, "        <Version>%d</Version>\n", header->version);
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Id>%lld</Id>\n", mbus_data_bcd_decode(header->id_bcd, 4));
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Manufacturer>%s</Manufacturer>\n",
+			mbus_decode_manufacturer(header->manufacturer[0], header->manufacturer[1], m_str));
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Version>%d</Version>\n", header->version);
 
-        mbus_str_xml_encode(str_encoded, mbus_data_product_name(header), sizeof(str_encoded));
+		mbus_str_xml_encode(str_encoded, mbus_data_product_name(header, product_name), sizeof(str_encoded));
 
-        len += snprintf(&buff[len], sizeof(buff) - len, "        <ProductName>%s</ProductName>\n", str_encoded);
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <ProductName>%s</ProductName>\n", str_encoded);
 
-        mbus_str_xml_encode(str_encoded, mbus_data_variable_medium_lookup(header->medium), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_variable_medium_lookup(header->medium, variable_medium), sizeof(str_encoded));
 
-        len += snprintf(&buff[len], sizeof(buff) - len, "        <Medium>%s</Medium>\n", str_encoded);
-        len += snprintf(&buff[len], sizeof(buff) - len, "        <AccessNumber>%d</AccessNumber>\n", header->access_no);
-        len += snprintf(&buff[len], sizeof(buff) - len, "        <Status>%.2X</Status>\n", header->status);
-        len += snprintf(&buff[len], sizeof(buff) - len, "        <Signature>%.2X%.2X</Signature>\n", header->signature[1], header->signature[0]);
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Medium>%s</Medium>\n", str_encoded);
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <AccessNumber>%d</AccessNumber>\n", header->access_no);
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Status>%.2X</Status>\n", header->status);
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Signature>%.2X%.2X</Signature>\n", header->signature[1], header->signature[0]);
 
-        len += snprintf(&buff[len], sizeof(buff) - len, "    </SlaveInformation>\n\n");
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "    </SlaveInformation>\n\n");
 
         return buff;
     }
@@ -3879,13 +3855,15 @@ mbus_data_variable_header_xml(mbus_data_variable_header *header)
 //------------------------------------------------------------------------------
 /// Generate XML for a single variable-length data record
 //------------------------------------------------------------------------------
-char *
-mbus_data_variable_record_xml(mbus_data_record *record, int record_cnt, int frame_cnt, mbus_data_variable_header *header)
+static char *
+mbus_data_variable_record_xml(mbus_data_record *record, int record_cnt, int frame_cnt, mbus_data_variable_header *header, char buff[8192])
 {
-    static char buff[8192];
+    char variable_record_xml[8192];
     char str_encoded[768];
+	char record_unit[128];
     size_t len = 0;
-    struct tm * timeinfo;
+	struct tm _timeinfo;
+	struct tm * timeinfo = &_timeinfo;
     char timestamp[21];
     long tariff;
 
@@ -3893,61 +3871,61 @@ mbus_data_variable_record_xml(mbus_data_record *record, int record_cnt, int fram
     {
         if (frame_cnt >= 0)
         {
-            len += snprintf(&buff[len], sizeof(buff) - len,
+            len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len,
                             "    <DataRecord id=\"%d\" frame=\"%d\">\n",
                             record_cnt, frame_cnt);
         }
         else
         {
-            len += snprintf(&buff[len], sizeof(buff) - len,
+            len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len,
                             "    <DataRecord id=\"%d\">\n", record_cnt);
         }
 
         if (record->drh.dib.dif == MBUS_DIB_DIF_MANUFACTURER_SPECIFIC) // MBUS_DIB_DIF_VENDOR_SPECIFIC
         {
-            len += snprintf(&buff[len], sizeof(buff) - len,
+            len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len,
                             "        <Function>Manufacturer specific</Function>\n");
         }
         else if (record->drh.dib.dif == MBUS_DIB_DIF_MORE_RECORDS_FOLLOW)
         {
-            len += snprintf(&buff[len], sizeof(buff) - len,
+            len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len,
                             "        <Function>More records follow</Function>\n");
         }
         else
         {
             mbus_str_xml_encode(str_encoded, mbus_data_record_function(record), sizeof(str_encoded));
-            len += snprintf(&buff[len], sizeof(buff) - len,
+            len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len,
                             "        <Function>%s</Function>\n", str_encoded);
 
-            len += snprintf(&buff[len], sizeof(buff) - len,
+            len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len,
                             "        <StorageNumber>%ld</StorageNumber>\n",
                             mbus_data_record_storage_number(record));
 
             if ((tariff = mbus_data_record_tariff(record)) >= 0)
             {
-                len += snprintf(&buff[len], sizeof(buff) - len, "        <Tariff>%ld</Tariff>\n",
+                len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Tariff>%ld</Tariff>\n",
                                 tariff);
-                len += snprintf(&buff[len], sizeof(buff) - len, "        <Device>%d</Device>\n",
+                len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Device>%d</Device>\n",
                                 mbus_data_record_device(record));
             }
 
-            mbus_str_xml_encode(str_encoded, mbus_data_record_unit(record), sizeof(str_encoded));
-            len += snprintf(&buff[len], sizeof(buff) - len,
+            mbus_str_xml_encode(str_encoded, mbus_data_record_unit(record, record_unit), sizeof(str_encoded));
+            len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len,
                             "        <Unit>%s</Unit>\n", str_encoded);
         }
 
         mbus_str_xml_encode(str_encoded, mbus_data_record_value(record), sizeof(str_encoded));
-        len += snprintf(&buff[len], sizeof(buff) - len, "        <Value>%s</Value>\n", str_encoded);
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Value>%s</Value>\n", str_encoded);
 
         if (record->timestamp > 0)
         {
-            timeinfo = gmtime (&(record->timestamp));
+            gmtime_r (&(record->timestamp), timeinfo);
             strftime(timestamp,20,"%Y-%m-%dT%H:%M:%S",timeinfo);
-            len += snprintf(&buff[len], sizeof(buff) - len,
+            len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len,
                             "        <Timestamp>%s</Timestamp>\n", timestamp);
         }
 
-        len += snprintf(&buff[len], sizeof(buff) - len, "    </DataRecord>\n\n");
+        len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "    </DataRecord>\n\n");
 
         return buff;
     }
@@ -3963,6 +3941,7 @@ mbus_data_variable_xml(mbus_data_variable *data)
 {
     mbus_data_record *record;
     char *buff = NULL, *new_buff;
+	char variable_record_xml[8192];
     size_t len = 0, buff_size = 8192;
     int i;
 
@@ -3997,7 +3976,7 @@ mbus_data_variable_xml(mbus_data_variable *data)
             }
 
             len += snprintf(&buff[len], buff_size - len, "%s",
-                            mbus_data_variable_record_xml(record, i, -1, &(data->header)));
+                            mbus_data_variable_record_xml(record, i, -1, &(data->header), variable_record_xml));
         }
         len += snprintf(&buff[len], buff_size - len, "</MBusData>\n");
 
@@ -4014,6 +3993,9 @@ ADDAPI char * ADDCALL
 mbus_data_fixed_xml(mbus_data_fixed *data)
 {
     char *buff = NULL;
+	char fixed_medium[256];
+	char fixed_unit[256];
+	char fixed_function[128];
     char str_encoded[256];
     size_t len = 0, buff_size = 8192;
     int val;
@@ -4032,7 +4014,7 @@ mbus_data_fixed_xml(mbus_data_fixed *data)
         len += snprintf(&buff[len], buff_size - len, "    <SlaveInformation>\n");
         len += snprintf(&buff[len], buff_size - len, "        <Id>%lld</Id>\n", mbus_data_bcd_decode(data->id_bcd, 4));
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_medium(data), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_medium(data, fixed_medium), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Medium>%s</Medium>\n", str_encoded);
 
         len += snprintf(&buff[len], buff_size - len, "        <AccessNumber>%d</AccessNumber>\n", data->tx_cnt);
@@ -4041,10 +4023,10 @@ mbus_data_fixed_xml(mbus_data_fixed *data)
 
         len += snprintf(&buff[len], buff_size - len, "    <DataRecord id=\"0\">\n");
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_function(data->status), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_function(data->status, fixed_function), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Function>%s</Function>\n", str_encoded);
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_unit(data->cnt1_type), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_unit(data->cnt1_type, fixed_unit), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Unit>%s</Unit>\n", str_encoded);
         if ((data->status & MBUS_DATA_FIXED_STATUS_FORMAT_MASK) == MBUS_DATA_FIXED_STATUS_FORMAT_BCD)
         {
@@ -4060,10 +4042,10 @@ mbus_data_fixed_xml(mbus_data_fixed *data)
 
         len += snprintf(&buff[len], buff_size - len, "    <DataRecord id=\"1\">\n");
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_function(data->status), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_function(data->status, fixed_function), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Function>%s</Function>\n", str_encoded);
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_unit(data->cnt2_type), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_unit(data->cnt2_type, fixed_unit), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Unit>%s</Unit>\n", str_encoded);
         if ((data->status & MBUS_DATA_FIXED_STATUS_FORMAT_MASK) == MBUS_DATA_FIXED_STATUS_FORMAT_BCD)
         {
@@ -4092,6 +4074,7 @@ ADDAPI char * ADDCALL
 mbus_data_error_xml(int error)
 {
     char *buff = NULL;
+	char data_error[256];
     char str_encoded[256];
     size_t len = 0, buff_size = 8192;
 
@@ -4105,7 +4088,7 @@ mbus_data_error_xml(int error)
 
     len += snprintf(&buff[len], buff_size - len, "    <SlaveInformation>\n");
 
-    mbus_str_xml_encode(str_encoded, mbus_data_error_lookup(error), sizeof(str_encoded));
+	mbus_str_xml_encode(str_encoded, mbus_data_error_lookup(error, data_error), sizeof(str_encoded));
     len += snprintf(&buff[len], buff_size - len, "        <Error>%s</Error>\n", str_encoded);
 
     len += snprintf(&buff[len], buff_size - len, "    </SlaveInformation>\n\n");
@@ -4155,6 +4138,7 @@ mbus_frame_xml(mbus_frame *frame)
     mbus_data_record *record;
     char *buff = NULL, *new_buff;
 
+	char variable_record_xml[8192];
     size_t len = 0, buff_size = 8192;
     int record_cnt = 0, frame_cnt;
 
@@ -4210,7 +4194,7 @@ mbus_frame_xml(mbus_frame *frame)
             // the same for each frame in a sequence of a multi-telegram
             // transfer.
             len += snprintf(&buff[len], buff_size - len, "%s",
-                                    mbus_data_variable_header_xml(&(frame_data.data_var.header)));
+                                    mbus_data_variable_header_xml(&(frame_data.data_var.header), variable_record_xml));
 
             // loop through all records in the current frame, using a global
             // record count as record ID in the XML output
@@ -4232,7 +4216,7 @@ mbus_frame_xml(mbus_frame *frame)
                 }
 
                 len += snprintf(&buff[len], buff_size - len, "%s",
-                                mbus_data_variable_record_xml(record, record_cnt, frame_cnt, &(frame_data.data_var.header)));
+                                mbus_data_variable_record_xml(record, record_cnt, frame_cnt, &(frame_data.data_var.header), variable_record_xml));
             }
 
             // free all records in the list
@@ -4271,7 +4255,7 @@ mbus_frame_xml(mbus_frame *frame)
                     }
 
                     len += snprintf(&buff[len], buff_size - len, "%s",
-                                    mbus_data_variable_record_xml(record, record_cnt, frame_cnt, &(frame_data.data_var.header)));
+                                    mbus_data_variable_record_xml(record, record_cnt, frame_cnt, &(frame_data.data_var.header), variable_record_xml));
                 }
 
                 // free all records in the list
@@ -4399,9 +4383,8 @@ mbus_data_record_append(mbus_data_variable *data, mbus_data_record *record)
 // manufacturer ID (2 bytes), version (1 byte) and medium (1 byte).
 //------------------------------------------------------------------------------
 ADDAPI char * ADDCALL
-mbus_frame_get_secondary_address(mbus_frame *frame)
+mbus_frame_get_secondary_address(mbus_frame *frame, char addr[32])
 {
-    static char addr[32];
     mbus_frame_data *data;
     unsigned long id;
 

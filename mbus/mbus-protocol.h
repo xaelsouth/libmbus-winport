@@ -552,7 +552,7 @@ ADDAPI int ADDCALL mbus_frame_internal_pack(mbus_frame *frame, mbus_frame_data *
 // data parsing
 //
 ADDAPI const char * ADDCALL mbus_data_record_function(mbus_data_record *record);
-ADDAPI const char * ADDCALL mbus_data_fixed_function(int status);
+ADDAPI const char * ADDCALL mbus_data_fixed_function(int status, char buff[128]);
 ADDAPI long ADDCALL mbus_data_record_storage_number(mbus_data_record *record);
 ADDAPI long ADDCALL mbus_data_record_tariff(mbus_data_record *record);
 ADDAPI int ADDCALL mbus_data_record_device(mbus_data_record *record);
@@ -562,11 +562,6 @@ ADDAPI int ADDCALL mbus_data_record_device(mbus_data_record *record);
 //
 ADDAPI int ADDCALL mbus_frame_type(mbus_frame *frame);
 ADDAPI int ADDCALL mbus_frame_direction(mbus_frame *frame);
-
-//
-// Slave status data register.
-//
-ADDAPI mbus_slave_data * ADDCALL mbus_slave_data_get(size_t i);
 
 //
 // XML generating functions
@@ -602,8 +597,8 @@ ADDAPI void ADDCALL mbus_hex_dump(const char *label, const char *buff, size_t le
 // data encode/decode functions
 //
 ADDAPI int ADDCALL mbus_data_manufacturer_encode(unsigned char *m_data, unsigned char *m_code);
-ADDAPI const char * ADDCALL mbus_decode_manufacturer(unsigned char byte1, unsigned char byte2);
-ADDAPI const char * ADDCALL mbus_data_product_name(mbus_data_variable_header *header);
+ADDAPI const char * ADDCALL mbus_decode_manufacturer(unsigned char byte1, unsigned char byte2, char m_str[4]);
+ADDAPI const char * ADDCALL mbus_data_product_name(mbus_data_variable_header *header, char buff[128]);
 
 ADDAPI int ADDCALL mbus_data_bcd_encode(unsigned char *bcd_data, size_t bcd_data_size, int value);
 ADDAPI int ADDCALL mbus_data_int_encode(unsigned char *int_data, size_t int_data_size, int value);
@@ -621,19 +616,19 @@ ADDAPI void ADDCALL mbus_data_str_decode(unsigned char *dst, const unsigned char
 
 ADDAPI void ADDCALL mbus_data_bin_decode(unsigned char *dst, const unsigned char *src, size_t len, size_t max_len);
 
-ADDAPI const char * ADDCALL mbus_data_fixed_medium(mbus_data_fixed *data);
-ADDAPI const char * ADDCALL mbus_data_fixed_unit(int medium_unit_byte);
-ADDAPI const char * ADDCALL mbus_data_variable_medium_lookup(unsigned char medium);
-ADDAPI const char * ADDCALL mbus_unit_prefix(int exp);
+ADDAPI const char * ADDCALL mbus_data_fixed_medium(mbus_data_fixed *data, char buff[256]);
+ADDAPI const char * ADDCALL mbus_data_fixed_unit(int medium_unit_byte, char buff[256]);
+ADDAPI const char * ADDCALL mbus_data_variable_medium_lookup(unsigned char medium, char buff[256]);
+ADDAPI const char * ADDCALL mbus_unit_prefix(int exp, char buff[256]);
 
-ADDAPI const char * ADDCALL mbus_data_error_lookup(int error);
+ADDAPI const char * ADDCALL mbus_data_error_lookup(int error, char buff[256]);
 
-ADDAPI const char * ADDCALL mbus_vib_unit_lookup(mbus_value_information_block *vib);
-ADDAPI const char * ADDCALL mbus_vif_unit_lookup(unsigned char vif);
+ADDAPI const char * ADDCALL mbus_vib_unit_lookup(mbus_value_information_block *vib, char buff[256], char vif_unit[256]);
+ADDAPI const char * ADDCALL mbus_vif_unit_lookup(unsigned char vif, char buff[256]);
 
 ADDAPI unsigned char ADDCALL mbus_dif_datalength_lookup(unsigned char dif);
 
-ADDAPI char * ADDCALL mbus_frame_get_secondary_address(mbus_frame *frame);
+ADDAPI char * ADDCALL mbus_frame_get_secondary_address(mbus_frame *frame, char addr[32]);
 ADDAPI int ADDCALL mbus_frame_select_secondary_pack(mbus_frame *frame, char *address);
 
 ADDAPI int ADDCALL mbus_is_primary_address(int value);

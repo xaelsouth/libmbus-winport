@@ -35,6 +35,8 @@
 #define mbus_errno GetLastError()
 #define mbus_socket_errno WSAGetLastError()
 
+#define gmtime_r(time,tm) gmtime_s(tm,time)	
+
 #define tcdrain(hndl)
 #define isatty(hndl)	(~0)
 

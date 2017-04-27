@@ -1,0 +1,103 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libmbus", "libmbus\libmbus.vcxproj", "{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-tcp-request-data", "mbus-tcp-request-data\mbus-tcp-request-data.vcxproj", "{9CAABD0E-54FD-409F-9DBD-A99506DEEC95}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-tcp-scan", "mbus-tcp-scan\mbus-tcp-scan.vcxproj", "{5EDCB210-50F0-40C2-907A-E9AF8A03BC19}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-tcp-scan-secondary", "mbus-tcp-scan-secondary\mbus-tcp-scan-secondary.vcxproj", "{89B40863-CF40-4402-BC0B-C525E8078205}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-tcp-select-secondary", "mbus-tcp-select-secondary\mbus-tcp-select-secondary.vcxproj", "{065D5E0F-88F3-4154-9E49-A64CF7987CDD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-tcp-request-data-multi-reply", "mbus-tcp-request-data-multi-reply\mbus-tcp-request-data-multi-reply.vcxproj", "{5F85BAA1-3B3E-4803-A145-E77A17B1BD9B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-tcp-raw-send", "mbus-tcp-raw-send\mbus-tcp-raw-send.vcxproj", "{7CE50C54-B3F1-4494-9DC3-85F66FF8E5CE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-tcp-application-reset", "mbus-tcp-application-reset\mbus-tcp-application-reset.vcxproj", "{07F23F46-2CCB-4A6A-9D28-9803EE284D32}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus_parse", "mbus_parse\mbus_parse.vcxproj", "{B4E11B4B-36A3-4C52-AD6E-42F18AA57CE2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus_parse_hex", "mbus_parse_hex\mbus_parse_hex.vcxproj", "{5B788B44-8D77-44AE-800E-8510EEE6D5D2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}.Debug|Win32.Build.0 = Debug|Win32
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}.Release|Win32.ActiveCfg = Release|Win32
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}.Release|Win32.Build.0 = Release|Win32
+		{9CAABD0E-54FD-409F-9DBD-A99506DEEC95}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9CAABD0E-54FD-409F-9DBD-A99506DEEC95}.Debug|Win32.Build.0 = Debug|Win32
+		{9CAABD0E-54FD-409F-9DBD-A99506DEEC95}.Release|Win32.ActiveCfg = Release|Win32
+		{9CAABD0E-54FD-409F-9DBD-A99506DEEC95}.Release|Win32.Build.0 = Release|Win32
+		{5EDCB210-50F0-40C2-907A-E9AF8A03BC19}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5EDCB210-50F0-40C2-907A-E9AF8A03BC19}.Debug|Win32.Build.0 = Debug|Win32
+		{5EDCB210-50F0-40C2-907A-E9AF8A03BC19}.Release|Win32.ActiveCfg = Release|Win32
+		{5EDCB210-50F0-40C2-907A-E9AF8A03BC19}.Release|Win32.Build.0 = Release|Win32
+		{89B40863-CF40-4402-BC0B-C525E8078205}.Debug|Win32.ActiveCfg = Debug|Win32
+		{89B40863-CF40-4402-BC0B-C525E8078205}.Debug|Win32.Build.0 = Debug|Win32
+		{89B40863-CF40-4402-BC0B-C525E8078205}.Release|Win32.ActiveCfg = Release|Win32
+		{89B40863-CF40-4402-BC0B-C525E8078205}.Release|Win32.Build.0 = Release|Win32
+		{065D5E0F-88F3-4154-9E49-A64CF7987CDD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{065D5E0F-88F3-4154-9E49-A64CF7987CDD}.Debug|Win32.Build.0 = Debug|Win32
+		{065D5E0F-88F3-4154-9E49-A64CF7987CDD}.Release|Win32.ActiveCfg = Release|Win32
+		{065D5E0F-88F3-4154-9E49-A64CF7987CDD}.Release|Win32.Build.0 = Release|Win32
+		{5F85BAA1-3B3E-4803-A145-E77A17B1BD9B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5F85BAA1-3B3E-4803-A145-E77A17B1BD9B}.Debug|Win32.Build.0 = Debug|Win32
+		{5F85BAA1-3B3E-4803-A145-E77A17B1BD9B}.Release|Win32.ActiveCfg = Release|Win32
+		{5F85BAA1-3B3E-4803-A145-E77A17B1BD9B}.Release|Win32.Build.0 = Release|Win32
+		{7CE50C54-B3F1-4494-9DC3-85F66FF8E5CE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7CE50C54-B3F1-4494-9DC3-85F66FF8E5CE}.Debug|Win32.Build.0 = Debug|Win32
+		{7CE50C54-B3F1-4494-9DC3-85F66FF8E5CE}.Release|Win32.ActiveCfg = Release|Win32
+		{7CE50C54-B3F1-4494-9DC3-85F66FF8E5CE}.Release|Win32.Build.0 = Release|Win32
+		{07F23F46-2CCB-4A6A-9D28-9803EE284D32}.Debug|Win32.ActiveCfg = Debug|Win32
+		{07F23F46-2CCB-4A6A-9D28-9803EE284D32}.Debug|Win32.Build.0 = Debug|Win32
+		{07F23F46-2CCB-4A6A-9D28-9803EE284D32}.Release|Win32.ActiveCfg = Release|Win32
+		{07F23F46-2CCB-4A6A-9D28-9803EE284D32}.Release|Win32.Build.0 = Release|Win32
+		{B4E11B4B-36A3-4C52-AD6E-42F18AA57CE2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B4E11B4B-36A3-4C52-AD6E-42F18AA57CE2}.Debug|Win32.Build.0 = Debug|Win32
+		{B4E11B4B-36A3-4C52-AD6E-42F18AA57CE2}.Release|Win32.ActiveCfg = Release|Win32
+		{B4E11B4B-36A3-4C52-AD6E-42F18AA57CE2}.Release|Win32.Build.0 = Release|Win32
+		{5B788B44-8D77-44AE-800E-8510EEE6D5D2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5B788B44-8D77-44AE-800E-8510EEE6D5D2}.Debug|Win32.Build.0 = Debug|Win32
+		{5B788B44-8D77-44AE-800E-8510EEE6D5D2}.Release|Win32.ActiveCfg = Release|Win32
+		{5B788B44-8D77-44AE-800E-8510EEE6D5D2}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

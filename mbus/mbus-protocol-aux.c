@@ -1230,6 +1230,7 @@ ADDAPI mbus_record * ADDCALL
 mbus_parse_fixed_record(char status_byte, char medium_unit, unsigned char *data)
 {
     long value = 0;
+	char fixed_function[128];
     mbus_record * record = NULL;
 
     if (!(record = mbus_record_new()))
@@ -1239,7 +1240,7 @@ mbus_parse_fixed_record(char status_byte, char medium_unit, unsigned char *data)
     }
 
     /* shared/static memory - get own copy */
-    record->function_medium = strdup(mbus_data_fixed_function((int)status_byte));  /* stored / actual */
+	record->function_medium = strdup(mbus_data_fixed_function((int)status_byte, fixed_function));  /* stored / actual */
 
     if (record->function_medium == NULL)
     {
@@ -2276,6 +2277,7 @@ mbus_probe_secondary_address(mbus_handle *handle, const char *mask, char *matchi
 {
     int ret, i;
     mbus_frame reply;
+	char secondary_address[32];
 
     if (mask == NULL || matching_addr == NULL || strlen(mask) != 16)
     {
@@ -2322,7 +2324,7 @@ mbus_probe_secondary_address(mbus_handle *handle, const char *mask, char *matchi
 
             if (mbus_frame_type(&reply) == MBUS_FRAME_TYPE_LONG)
             {
-                char *addr = mbus_frame_get_secondary_address(&reply);
+                char *addr = mbus_frame_get_secondary_address(&reply, secondary_address);
 
                 if (addr == NULL)
                 {

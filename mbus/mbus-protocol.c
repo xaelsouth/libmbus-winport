@@ -55,11 +55,6 @@ mbus_manufacturer_id(char *manufacturer)
     return (0x0421 <= id && id <= 0x6b5a) ? id : 0;
 }
 
-//------------------------------------------------------------------------------
-// internal data
-//------------------------------------------------------------------------------
-static mbus_slave_data slave_data[MBUS_MAX_PRIMARY_SLAVES];
-
 //
 //  trace callbacks
 //
@@ -97,21 +92,6 @@ ADDAPI void ADDCALL
 mbus_error_reset()
 {
     snprintf(error_str, sizeof(error_str), "no errors");
-}
-
-//------------------------------------------------------------------------------
-/// Return a pointer to the slave_data register. This register can be used for
-/// storing current slave status.
-//------------------------------------------------------------------------------
-ADDAPI mbus_slave_data * ADDCALL
-mbus_slave_data_get(size_t i)
-{
-    if (i < MBUS_MAX_PRIMARY_SLAVES)
-    {
-        return &slave_data[i];
-    }
-
-    return NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -846,10 +826,8 @@ mbus_data_manufacturer_encode(unsigned char *m_data, unsigned char *m_code)
 ///
 //------------------------------------------------------------------------------
 ADDAPI const char * ADDCALL
-mbus_decode_manufacturer(unsigned char byte1, unsigned char byte2)
+mbus_decode_manufacturer(unsigned char byte1, unsigned char byte2, char m_str[4])
 {
-    static char m_str[4];
-
     int m_id;
 
     m_str[0] = byte1;
@@ -866,12 +844,11 @@ mbus_decode_manufacturer(unsigned char byte1, unsigned char byte2)
 }
 
 ADDAPI const char * ADDCALL
-mbus_data_product_name(mbus_data_variable_header *header)
+mbus_data_product_name(mbus_data_variable_header *header, char buff[128])
 {
-    static char buff[128];
     unsigned int manufacturer;
 
-    memset(buff, 0, sizeof(buff));
+    memset(buff, 0, 128*sizeof(buff[0]));
 
     if (header)
     {
@@ -1298,10 +1275,8 @@ mbus_data_product_name(mbus_data_variable_header *header)
 /// For fixed-length frames, get a string describing the medium.
 ///
 ADDAPI const char * ADDCALL
-mbus_data_fixed_medium(mbus_data_fixed *data)
+mbus_data_fixed_medium(mbus_data_fixed *data, char buff[256])
 {
-    static char buff[256];
-
     if (data)
     {
         switch ( (data->cnt1_type&0xC0)>>6 | (data->cnt2_type&0xC0)>>4 )
@@ -1409,10 +1384,8 @@ mbus_data_fixed_medium(mbus_data_fixed *data)
 /// For fixed-length frames, get a string describing the unit of the data.
 ///
 ADDAPI const char * ADDCALL
-mbus_data_fixed_unit(int medium_unit_byte)
+mbus_data_fixed_unit(int medium_unit_byte, char buff[256])
 {
-    static char buff[256];
-
     switch (medium_unit_byte & 0x3F)
     {
         case 0x00:
@@ -1653,10 +1626,8 @@ mbus_data_fixed_unit(int medium_unit_byte)
 /// For variable-length frames, returns a string describing the medium.
 ///
 ADDAPI const char * ADDCALL
-mbus_data_variable_medium_lookup(unsigned char medium)
+mbus_data_variable_medium_lookup(unsigned char medium, char buff[256])
 {
-    static char buff[256];
-
     switch (medium)
     {
         case MBUS_VARIABLE_DATA_MEDIUM_OTHER:
@@ -2791,11 +2762,9 @@ mbus_data_record_function(mbus_data_record *record)
 /// For fixed-length frames, return a string describing the type of value (stored or actual)
 ///
 ADDAPI const char * ADDCALL
-mbus_data_fixed_function(int status)
+mbus_data_fixed_function(int status, char buff[128])
 {
-    static char buff[128];
-
-    snprintf(buff, sizeof(buff), "%s",
+    snprintf(buff, 128*sizeof(buff[0]), "%s",
             (status & MBUS_DATA_FIXED_STATUS_DATE_MASK) == MBUS_DATA_FIXED_STATUS_DATE_STORED ?
             "Stored value" : "Actual value" );
 
@@ -3597,6 +3566,9 @@ mbus_frame_data_print(mbus_frame_data *data)
 ADDAPI int ADDCALL
 mbus_data_variable_header_print(mbus_data_variable_header *header)
 {
+	char m_str[4];
+	char variable_medium[256];
+
     if (header)
     {
         printf("%s: ID           = %lld\n", __PRETTY_FUNCTION__,
@@ -3606,10 +3578,10 @@ mbus_data_variable_header_print(mbus_data_variable_header *header)
                header->manufacturer[1], header->manufacturer[0]);
 
         printf("%s: Manufacturer = %s\n", __PRETTY_FUNCTION__,
-               mbus_decode_manufacturer(header->manufacturer[0], header->manufacturer[1]));
+			mbus_decode_manufacturer(header->manufacturer[0], header->manufacturer[1], m_str));
 
         printf("%s: Version      = 0x%.2X\n", __PRETTY_FUNCTION__, header->version);
-        printf("%s: Medium       = %s (0x%.2X)\n", __PRETTY_FUNCTION__, mbus_data_variable_medium_lookup(header->medium), header->medium);
+		printf("%s: Medium       = %s (0x%.2X)\n", __PRETTY_FUNCTION__, mbus_data_variable_medium_lookup(header->medium, variable_medium), header->medium);
         printf("%s: Access #     = 0x%.2X\n", __PRETTY_FUNCTION__, header->access_no);
         printf("%s: Status       = 0x%.2X\n", __PRETTY_FUNCTION__, header->status);
         printf("%s: Signature    = 0x%.2X%.2X\n", __PRETTY_FUNCTION__,
@@ -3697,6 +3669,9 @@ mbus_data_variable_print(mbus_data_variable *data)
 ADDAPI int ADDCALL
 mbus_data_fixed_print(mbus_data_fixed *data)
 {
+	char fixed_medium[256];
+	char fixed_unit[256];
+	char fixed_function[128];
     int val;
 
     if (data)
@@ -3704,10 +3679,10 @@ mbus_data_fixed_print(mbus_data_fixed *data)
         printf("%s: ID       = %lld\n", __PRETTY_FUNCTION__, mbus_data_bcd_decode(data->id_bcd, 4));
         printf("%s: Access # = 0x%.2X\n", __PRETTY_FUNCTION__, data->tx_cnt);
         printf("%s: Status   = 0x%.2X\n", __PRETTY_FUNCTION__, data->status);
-        printf("%s: Function = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_function(data->status));
+        printf("%s: Function = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_function(data->status, fixed_function));
 
-        printf("%s: Medium1  = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_medium(data));
-        printf("%s: Unit1    = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_unit(data->cnt1_type));
+		printf("%s: Medium1  = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_medium(data, fixed_medium));
+        printf("%s: Unit1    = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_unit(data->cnt1_type, fixed_unit));
         if ((data->status & MBUS_DATA_FIXED_STATUS_FORMAT_MASK) == MBUS_DATA_FIXED_STATUS_FORMAT_BCD)
         {
             printf("%s: Counter1 = %lld\n", __PRETTY_FUNCTION__, mbus_data_bcd_decode(data->cnt1_val, 4));
@@ -3718,8 +3693,8 @@ mbus_data_fixed_print(mbus_data_fixed *data)
             printf("%s: Counter1 = %d\n", __PRETTY_FUNCTION__, val);
         }
 
-        printf("%s: Medium2  = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_medium(data));
-        printf("%s: Unit2    = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_unit(data->cnt2_type));
+		printf("%s: Medium2  = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_medium(data, fixed_medium));
+        printf("%s: Unit2    = %s\n", __PRETTY_FUNCTION__, mbus_data_fixed_unit(data->cnt2_type, fixed_unit));
         if ((data->status & MBUS_DATA_FIXED_STATUS_FORMAT_MASK) == MBUS_DATA_FIXED_STATUS_FORMAT_BCD)
         {
             printf("%s: Counter2 = %lld\n", __PRETTY_FUNCTION__, mbus_data_bcd_decode(data->cnt2_val, 4));
@@ -3845,6 +3820,9 @@ ADDAPI char * ADDCALL
 mbus_data_variable_header_xml(mbus_data_variable_header *header)
 {
     static char buff[8192];
+	char product_name[128];
+	char variable_medium[256];
+	char m_str[4];
     char str_encoded[768];
     size_t len = 0;
 
@@ -3854,14 +3832,14 @@ mbus_data_variable_header_xml(mbus_data_variable_header *header)
 
         len += snprintf(&buff[len], sizeof(buff) - len, "        <Id>%lld</Id>\n", mbus_data_bcd_decode(header->id_bcd, 4));
         len += snprintf(&buff[len], sizeof(buff) - len, "        <Manufacturer>%s</Manufacturer>\n",
-                mbus_decode_manufacturer(header->manufacturer[0], header->manufacturer[1]));
+			mbus_decode_manufacturer(header->manufacturer[0], header->manufacturer[1], m_str));
         len += snprintf(&buff[len], sizeof(buff) - len, "        <Version>%d</Version>\n", header->version);
 
-        mbus_str_xml_encode(str_encoded, mbus_data_product_name(header), sizeof(str_encoded));
+		mbus_str_xml_encode(str_encoded, mbus_data_product_name(header, product_name), sizeof(str_encoded));
 
         len += snprintf(&buff[len], sizeof(buff) - len, "        <ProductName>%s</ProductName>\n", str_encoded);
 
-        mbus_str_xml_encode(str_encoded, mbus_data_variable_medium_lookup(header->medium), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_variable_medium_lookup(header->medium, variable_medium), sizeof(str_encoded));
 
         len += snprintf(&buff[len], sizeof(buff) - len, "        <Medium>%s</Medium>\n", str_encoded);
         len += snprintf(&buff[len], sizeof(buff) - len, "        <AccessNumber>%d</AccessNumber>\n", header->access_no);
@@ -3879,10 +3857,10 @@ mbus_data_variable_header_xml(mbus_data_variable_header *header)
 //------------------------------------------------------------------------------
 /// Generate XML for a single variable-length data record
 //------------------------------------------------------------------------------
-char *
-mbus_data_variable_record_xml(mbus_data_record *record, int record_cnt, int frame_cnt, mbus_data_variable_header *header)
+static char *
+mbus_data_variable_record_xml(mbus_data_record *record, int record_cnt, int frame_cnt, mbus_data_variable_header *header, char buff[8192])
 {
-    static char buff[8192];
+    char variable_record_xml[8192];
     char str_encoded[768];
     size_t len = 0;
     struct tm * timeinfo;
@@ -3963,6 +3941,7 @@ mbus_data_variable_xml(mbus_data_variable *data)
 {
     mbus_data_record *record;
     char *buff = NULL, *new_buff;
+	char variable_record_xml[8192];
     size_t len = 0, buff_size = 8192;
     int i;
 
@@ -3997,7 +3976,7 @@ mbus_data_variable_xml(mbus_data_variable *data)
             }
 
             len += snprintf(&buff[len], buff_size - len, "%s",
-                            mbus_data_variable_record_xml(record, i, -1, &(data->header)));
+                            mbus_data_variable_record_xml(record, i, -1, &(data->header), variable_record_xml));
         }
         len += snprintf(&buff[len], buff_size - len, "</MBusData>\n");
 
@@ -4014,6 +3993,9 @@ ADDAPI char * ADDCALL
 mbus_data_fixed_xml(mbus_data_fixed *data)
 {
     char *buff = NULL;
+	char fixed_medium[256];
+	char fixed_unit[256];
+	char fixed_function[128];
     char str_encoded[256];
     size_t len = 0, buff_size = 8192;
     int val;
@@ -4032,7 +4014,7 @@ mbus_data_fixed_xml(mbus_data_fixed *data)
         len += snprintf(&buff[len], buff_size - len, "    <SlaveInformation>\n");
         len += snprintf(&buff[len], buff_size - len, "        <Id>%lld</Id>\n", mbus_data_bcd_decode(data->id_bcd, 4));
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_medium(data), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_medium(data, fixed_medium), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Medium>%s</Medium>\n", str_encoded);
 
         len += snprintf(&buff[len], buff_size - len, "        <AccessNumber>%d</AccessNumber>\n", data->tx_cnt);
@@ -4041,10 +4023,10 @@ mbus_data_fixed_xml(mbus_data_fixed *data)
 
         len += snprintf(&buff[len], buff_size - len, "    <DataRecord id=\"0\">\n");
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_function(data->status), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_function(data->status, fixed_function), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Function>%s</Function>\n", str_encoded);
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_unit(data->cnt1_type), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_unit(data->cnt1_type, fixed_unit), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Unit>%s</Unit>\n", str_encoded);
         if ((data->status & MBUS_DATA_FIXED_STATUS_FORMAT_MASK) == MBUS_DATA_FIXED_STATUS_FORMAT_BCD)
         {
@@ -4060,10 +4042,10 @@ mbus_data_fixed_xml(mbus_data_fixed *data)
 
         len += snprintf(&buff[len], buff_size - len, "    <DataRecord id=\"1\">\n");
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_function(data->status), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_function(data->status, fixed_function), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Function>%s</Function>\n", str_encoded);
 
-        mbus_str_xml_encode(str_encoded, mbus_data_fixed_unit(data->cnt2_type), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_fixed_unit(data->cnt2_type, fixed_unit), sizeof(str_encoded));
         len += snprintf(&buff[len], buff_size - len, "        <Unit>%s</Unit>\n", str_encoded);
         if ((data->status & MBUS_DATA_FIXED_STATUS_FORMAT_MASK) == MBUS_DATA_FIXED_STATUS_FORMAT_BCD)
         {
@@ -4155,6 +4137,7 @@ mbus_frame_xml(mbus_frame *frame)
     mbus_data_record *record;
     char *buff = NULL, *new_buff;
 
+	char variable_record_xml[8192];
     size_t len = 0, buff_size = 8192;
     int record_cnt = 0, frame_cnt;
 
@@ -4210,7 +4193,7 @@ mbus_frame_xml(mbus_frame *frame)
             // the same for each frame in a sequence of a multi-telegram
             // transfer.
             len += snprintf(&buff[len], buff_size - len, "%s",
-                                    mbus_data_variable_header_xml(&(frame_data.data_var.header)));
+                                    mbus_data_variable_header_xml(&(frame_data.data_var.header), variable_record_xml));
 
             // loop through all records in the current frame, using a global
             // record count as record ID in the XML output
@@ -4232,7 +4215,7 @@ mbus_frame_xml(mbus_frame *frame)
                 }
 
                 len += snprintf(&buff[len], buff_size - len, "%s",
-                                mbus_data_variable_record_xml(record, record_cnt, frame_cnt, &(frame_data.data_var.header)));
+                                mbus_data_variable_record_xml(record, record_cnt, frame_cnt, &(frame_data.data_var.header), variable_record_xml));
             }
 
             // free all records in the list
@@ -4271,7 +4254,7 @@ mbus_frame_xml(mbus_frame *frame)
                     }
 
                     len += snprintf(&buff[len], buff_size - len, "%s",
-                                    mbus_data_variable_record_xml(record, record_cnt, frame_cnt, &(frame_data.data_var.header)));
+                                    mbus_data_variable_record_xml(record, record_cnt, frame_cnt, &(frame_data.data_var.header), variable_record_xml));
                 }
 
                 // free all records in the list
@@ -4399,9 +4382,8 @@ mbus_data_record_append(mbus_data_variable *data, mbus_data_record *record)
 // manufacturer ID (2 bytes), version (1 byte) and medium (1 byte).
 //------------------------------------------------------------------------------
 ADDAPI char * ADDCALL
-mbus_frame_get_secondary_address(mbus_frame *frame)
+mbus_frame_get_secondary_address(mbus_frame *frame, char addr[32])
 {
-    static char addr[32];
     mbus_frame_data *data;
     unsigned long id;
 

@@ -30,13 +30,17 @@
 #ifdef _WIN32
 static MBUS_HANDLE open_serial_port(const char *device)
 {
-	return CreateFile(device,
-					    GENERIC_READ | GENERIC_WRITE,
-						0,                          /* no share  */
-						NULL,                       /* no security */
-						OPEN_EXISTING,
-						0,
-						NULL);                      /* no templates */
+	size_t convertedChars;
+	wchar_t w_device[128];
+	mbstowcs_s(&convertedChars, w_device, strlen(device) + 1, device, _TRUNCATE);
+
+	return CreateFile(w_device,                //port name
+						GENERIC_READ | GENERIC_WRITE, //Read/Write
+						0,                            // No Sharing
+						NULL,                         // No Security
+						OPEN_EXISTING,// Open existing port only
+						0,            // Non Overlapped I/O
+						NULL);        // Null for Comm Devices
 
 }
 
@@ -58,11 +62,9 @@ static int set_serial_port_baudrate_2400(mbus_handle *handle)
 	if (handle == NULL)
 		return -1;
 
-	memset(&port_settings, 0, sizeof(port_settings));
-	memset(&timeouts, 0, sizeof(timeouts));
-
+	memset(&port_settings, 0, sizeof(port_settings));	
 	port_settings.DCBlength = sizeof(port_settings);
-	if ( !BuildCommDCBA("baud=2400 parity=N data=8 stop=1", &port_settings) )
+	if ( !BuildCommDCBA("baud=2400 parity=E data=8 stop=1", &port_settings) )
 	{
 		fprintf(stderr, "Unable to set comport dcb settings.\n");
 		return -1;
@@ -75,7 +77,12 @@ static int set_serial_port_baudrate_2400(mbus_handle *handle)
 		return -1;
 	}
 
-	timeouts.ReadTotalTimeoutConstant = 30;
+	memset(&timeouts, 0, sizeof(timeouts));
+	timeouts.ReadIntervalTimeout = 500;
+	timeouts.ReadTotalTimeoutMultiplier = 0;
+	timeouts.ReadTotalTimeoutConstant = 2000;
+	timeouts.WriteTotalTimeoutMultiplier = 0;
+	timeouts.WriteTotalTimeoutConstant = 15000;
 	if (!SetCommTimeouts(handle->hndl, &timeouts))
 	{
 		fprintf(stderr, "Unable to set comport timeouts.\n");
@@ -103,6 +110,9 @@ static ssize_t write_serial_port(mbus_handle *handle, char *buf, int remaining)
 	DWORD written_bytes;
 
 	if (handle == NULL)
+		return -1;
+
+	if (!PurgeComm(handle->hndl, PURGE_RXCLEAR | PURGE_TXCLEAR))
 		return -1;
 
 	if (!WriteFile(handle->hndl, buf, remaining, &written_bytes, NULL))
@@ -220,7 +230,7 @@ mbus_serial_connect(mbus_handle *handle)
     //
 
     // Use blocking read and handle it by serial port setting
-    if ((handle->hndl = open_serial_port(device)) != MBUS_INVALID_HANDLE)
+    if ((handle->hndl = open_serial_port(device)) == MBUS_INVALID_HANDLE)
     {
         fprintf(stderr, "%s: failed to open tty.", __PRETTY_FUNCTION__);
         return -1;
@@ -235,16 +245,20 @@ mbus_serial_connect(mbus_handle *handle)
 // Set baud rate for serial connection
 //------------------------------------------------------------------------------
 #ifdef _WIN32
-int
+ADDAPI int ADDCALL
 mbus_serial_set_baudrate(mbus_handle *handle, long baudrate)
 {
+	mbus_serial_data *serial_data;
 	char mode_str[128];
 	DCB port_settings;
-	COMMTIMEOUTS timeouts;
-	mbus_serial_data *serial_data;
+	COMMTIMEOUTS timeouts;	
 
-	memset(&port_settings, 0, sizeof(port_settings));
 	memset(&timeouts, 0, sizeof(timeouts));
+	timeouts.ReadIntervalTimeout = 500;
+	timeouts.ReadTotalTimeoutMultiplier = 0;
+	timeouts.ReadTotalTimeoutConstant = 2000;
+	timeouts.WriteTotalTimeoutMultiplier = 0;
+	timeouts.WriteTotalTimeoutConstant = 15000;
 
 	if (handle == NULL)
 		return -1;
@@ -258,42 +272,35 @@ mbus_serial_set_baudrate(mbus_handle *handle, long baudrate)
 	{
 	case     300:
 		strncpy(mode_str, "baud=300", sizeof(mode_str));
-		timeouts.ReadTotalTimeoutConstant = 130;
 		break;
 	case     600:
 		strncpy(mode_str, "baud=600", sizeof(mode_str));
-		timeouts.ReadTotalTimeoutConstant = 80;
 		break;
 	case    1200:
 		strncpy(mode_str, "baud=1200", sizeof(mode_str));
-		timeouts.ReadTotalTimeoutConstant = 50;
 		break;
 	case    2400:
 		strncpy(mode_str, "baud=2400", sizeof(mode_str));
-		timeouts.ReadTotalTimeoutConstant = 30;
 		break;
 	case    4800:
 		strncpy(mode_str, "baud=4800", sizeof(mode_str));
-		timeouts.ReadTotalTimeoutConstant = 30;
 		break;
 	case    9600:
 		strncpy(mode_str, "baud=9600", sizeof(mode_str));
-		timeouts.ReadTotalTimeoutConstant = 20;
 		break;
 	case   19200:
 		strncpy(mode_str, "baud=19200", sizeof(mode_str));
-		timeouts.ReadTotalTimeoutConstant = 20;
 		break;
 	case   38400:
 		strncpy(mode_str, "baud=38400", sizeof(mode_str));
-		timeouts.ReadTotalTimeoutConstant = 20;
 		break;
 	default:
 		return -1; // unsupported baudrate
 	}
 
-	strncat(mode_str, " parity=N data=8 stop=1", sizeof(mode_str));
+	strncat(mode_str, " parity=E data=8 stop=1", sizeof(mode_str));
 
+	memset(&port_settings, 0, sizeof(port_settings));
 	port_settings.DCBlength = sizeof(port_settings);
 	if (!BuildCommDCBA(mode_str, &port_settings))
 	{
@@ -317,7 +324,7 @@ mbus_serial_set_baudrate(mbus_handle *handle, long baudrate)
 	return 0;
 }
 #else
-int
+ADDAPI int ADDCALL
 mbus_serial_set_baudrate(mbus_handle *handle, long baudrate)
 {
     speed_t speed;

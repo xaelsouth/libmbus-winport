@@ -78,11 +78,13 @@ mbus_tcp_connect(mbus_handle *handle)
 	{
 		handle->sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 
-		if (handle->sock != MBUS_INVALID_SOCKET)
+		if (handle->sock == MBUS_INVALID_SOCKET)
 			continue;
 
 		if (connect(handle->sock, (struct sockaddr *)&s, sizeof(s)) == 0)
 			break;
+		else
+			closesocket(handle->sock);
 	}
 
 	if (rp == NULL)

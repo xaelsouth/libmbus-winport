@@ -50,6 +50,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus_parse_hex", "mbus_pars
 		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-serial-request-data", "mbus-serial-request-data\mbus-serial-request-data.vcxproj", "{E058827B-001A-443B-9D0E-4D7E9D203353}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-serial-scan", "mbus-serial-scan\mbus-serial-scan.vcxproj", "{D3DEF4D8-7F5E-4D5F-8CAB-9B23A60384DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -96,6 +103,14 @@ Global
 		{5B788B44-8D77-44AE-800E-8510EEE6D5D2}.Debug|Win32.Build.0 = Debug|Win32
 		{5B788B44-8D77-44AE-800E-8510EEE6D5D2}.Release|Win32.ActiveCfg = Release|Win32
 		{5B788B44-8D77-44AE-800E-8510EEE6D5D2}.Release|Win32.Build.0 = Release|Win32
+		{E058827B-001A-443B-9D0E-4D7E9D203353}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E058827B-001A-443B-9D0E-4D7E9D203353}.Debug|Win32.Build.0 = Debug|Win32
+		{E058827B-001A-443B-9D0E-4D7E9D203353}.Release|Win32.ActiveCfg = Release|Win32
+		{E058827B-001A-443B-9D0E-4D7E9D203353}.Release|Win32.Build.0 = Release|Win32
+		{D3DEF4D8-7F5E-4D5F-8CAB-9B23A60384DE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D3DEF4D8-7F5E-4D5F-8CAB-9B23A60384DE}.Debug|Win32.Build.0 = Debug|Win32
+		{D3DEF4D8-7F5E-4D5F-8CAB-9B23A60384DE}.Release|Win32.ActiveCfg = Release|Win32
+		{D3DEF4D8-7F5E-4D5F-8CAB-9B23A60384DE}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

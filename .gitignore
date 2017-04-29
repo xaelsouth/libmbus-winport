@@ -72,3 +72,5 @@ test/error-frames/*.xml.new
 test/unsupported-frames/*.xml.new
 
 Debug
+/msvc/libmbus/Release
+/msvc/libmbus/mbus-serial-switch-baudrate/Release

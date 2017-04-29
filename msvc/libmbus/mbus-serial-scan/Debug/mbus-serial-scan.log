@@ -1,5 +1,10 @@
-﻿Build started 29.04.2017 01:30:16.
+﻿Build started 29.04.2017 21:57:04.
+     1>Project "e:\libmbus-master\msvc\libmbus\mbus-serial-scan\mbus-serial-scan.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.exe" /INCREMENTAL /NOLOGO "E:\libmbus-master\msvc\libmbus\Debug\\libmbus.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.lib" /MACHINE:X86 "Debug\mbus-serial-scan.obj"
+         mbus-serial-scan.vcxproj -> E:\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.exe
+     1>Done Building Project "e:\libmbus-master\msvc\libmbus\mbus-serial-scan\mbus-serial-scan.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.03
+Time Elapsed 00:00:00.29

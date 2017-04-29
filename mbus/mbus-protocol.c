@@ -2382,9 +2382,8 @@ mbus_vib_unit_lookup(mbus_value_information_block *vib, char buff[256], char vif
 //
 //------------------------------------------------------------------------------
 const char *
-mbus_data_record_decode(mbus_data_record *record)
+mbus_data_record_decode(mbus_data_record *record, char buff[768])
 {
-    static char buff[768];
     unsigned char vif, vife;
 
     if (record)
@@ -2629,16 +2628,14 @@ mbus_data_record_unit(mbus_data_record *record, char buff[128])
 //------------------------------------------------------------------------------
 /// Return the value for a variable-length data record
 //------------------------------------------------------------------------------
-const char *
-mbus_data_record_value(mbus_data_record *record)
+static const char *
+mbus_data_record_value(mbus_data_record *record, char buff1[768], char buff2[768])
 {
-    static char buff[768];
-
     if (record)
     {
-        snprintf(buff, 768*sizeof(buff[0]), "%s", mbus_data_record_decode(record));
+		snprintf(buff1, 768 * sizeof(buff1[0]), "%s", mbus_data_record_decode(record, buff2));
 
-        return buff;
+		return buff1;
     }
 
     return NULL;
@@ -2720,10 +2717,8 @@ ADDAPI int ADDCALL mbus_data_record_device(mbus_data_record *record)
 /// Return a string containing the function description
 //------------------------------------------------------------------------------
 ADDAPI const char * ADDCALL
-mbus_data_record_function(mbus_data_record *record)
+mbus_data_record_function(mbus_data_record *record, char buff[128])
 {
-    static char buff[128];
-
     if (record)
     {
         switch (record->drh.dib.dif & MBUS_DATA_RECORD_DIF_MASK_FUNCTION)
@@ -3815,9 +3810,8 @@ mbus_str_xml_encode(unsigned char *dst, const unsigned char *src, size_t max_len
 /// Generate XML for the variable-length data header
 //------------------------------------------------------------------------------
 ADDAPI char * ADDCALL
-mbus_data_variable_header_xml(mbus_data_variable_header *header)
+mbus_data_variable_header_xml(mbus_data_variable_header *header, char buff[8192])
 {
-    static char buff[8192];
 	char product_name[128];
 	char variable_medium[256];
 	char m_str[4];
@@ -3866,6 +3860,8 @@ mbus_data_variable_record_xml(mbus_data_record *record, int record_cnt, int fram
 	struct tm * timeinfo = &_timeinfo;
     char timestamp[21];
     long tariff;
+	char record_value[768], record_data_value[768];
+	char record_function[128];
 
     if (record)
     {
@@ -3893,7 +3889,7 @@ mbus_data_variable_record_xml(mbus_data_record *record, int record_cnt, int fram
         }
         else
         {
-            mbus_str_xml_encode(str_encoded, mbus_data_record_function(record), sizeof(str_encoded));
+            mbus_str_xml_encode(str_encoded, mbus_data_record_function(record, record_function), sizeof(str_encoded));
             len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len,
                             "        <Function>%s</Function>\n", str_encoded);
 
@@ -3914,7 +3910,7 @@ mbus_data_variable_record_xml(mbus_data_record *record, int record_cnt, int fram
                             "        <Unit>%s</Unit>\n", str_encoded);
         }
 
-        mbus_str_xml_encode(str_encoded, mbus_data_record_value(record), sizeof(str_encoded));
+        mbus_str_xml_encode(str_encoded, mbus_data_record_value(record, record_value, record_data_value), sizeof(str_encoded));
         len += snprintf(&buff[len], 8192*sizeof(buff[0]) - len, "        <Value>%s</Value>\n", str_encoded);
 
         if (record->timestamp > 0)
@@ -3942,6 +3938,7 @@ mbus_data_variable_xml(mbus_data_variable *data)
     mbus_data_record *record;
     char *buff = NULL, *new_buff;
 	char variable_record_xml[8192];
+	char variable_header_xml[8192];
     size_t len = 0, buff_size = 8192;
     int i;
 
@@ -3957,7 +3954,7 @@ mbus_data_variable_xml(mbus_data_variable *data)
         len += snprintf(&buff[len], buff_size - len, "<MBusData>\n\n");
 
         len += snprintf(&buff[len], buff_size - len, "%s",
-                        mbus_data_variable_header_xml(&(data->header)));
+			mbus_data_variable_header_xml(&(data->header), variable_header_xml));
 
         for (record = data->record, i = 0; record; record = record->next, i++)
         {
@@ -4138,6 +4135,7 @@ mbus_frame_xml(mbus_frame *frame)
     mbus_data_record *record;
     char *buff = NULL, *new_buff;
 
+	char variable_header_xml[8192];
 	char variable_record_xml[8192];
     size_t len = 0, buff_size = 8192;
     int record_cnt = 0, frame_cnt;
@@ -4194,7 +4192,7 @@ mbus_frame_xml(mbus_frame *frame)
             // the same for each frame in a sequence of a multi-telegram
             // transfer.
             len += snprintf(&buff[len], buff_size - len, "%s",
-                                    mbus_data_variable_header_xml(&(frame_data.data_var.header), variable_record_xml));
+				mbus_data_variable_header_xml(&(frame_data.data_var.header), variable_header_xml));
 
             // loop through all records in the current frame, using a global
             // record count as record ID in the XML output

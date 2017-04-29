@@ -56,6 +56,29 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-serial-request-data", 
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-serial-scan", "mbus-serial-scan\mbus-serial-scan.vcxproj", "{D3DEF4D8-7F5E-4D5F-8CAB-9B23A60384DE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-serial-request-data-multi-reply", "mbus-serial-request-data-multi-reply\mbus-serial-request-data-multi-reply.vcxproj", "{8254022F-4251-4174-9AFC-805AB7389993}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-serial-scan-secondary", "mbus-serial-scan-secondary\mbus-serial-scan-secondary.vcxproj", "{314CD7FF-EDBB-4D36-A04C-3A74695833F0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-serial-select-secondary", "mbus-serial-select-secondary\mbus-serial-select-secondary.vcxproj", "{27851AB7-0A86-45A4-873E-8E76449401F7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbus-serial-switch-baudrate", "mbus-serial-switch-baudrate\mbus-serial-switch-baudrate.vcxproj", "{E963FEE8-1010-4ACA-8093-8E9BE8996FB3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91E2EB92-89BA-4B15-946A-0E1B58C1F6CA} = {91E2EB92-89BA-4B15-946A-0E1B58C1F6CA}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +134,22 @@ Global
 		{D3DEF4D8-7F5E-4D5F-8CAB-9B23A60384DE}.Debug|Win32.Build.0 = Debug|Win32
 		{D3DEF4D8-7F5E-4D5F-8CAB-9B23A60384DE}.Release|Win32.ActiveCfg = Release|Win32
 		{D3DEF4D8-7F5E-4D5F-8CAB-9B23A60384DE}.Release|Win32.Build.0 = Release|Win32
+		{8254022F-4251-4174-9AFC-805AB7389993}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8254022F-4251-4174-9AFC-805AB7389993}.Debug|Win32.Build.0 = Debug|Win32
+		{8254022F-4251-4174-9AFC-805AB7389993}.Release|Win32.ActiveCfg = Release|Win32
+		{8254022F-4251-4174-9AFC-805AB7389993}.Release|Win32.Build.0 = Release|Win32
+		{314CD7FF-EDBB-4D36-A04C-3A74695833F0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{314CD7FF-EDBB-4D36-A04C-3A74695833F0}.Debug|Win32.Build.0 = Debug|Win32
+		{314CD7FF-EDBB-4D36-A04C-3A74695833F0}.Release|Win32.ActiveCfg = Release|Win32
+		{314CD7FF-EDBB-4D36-A04C-3A74695833F0}.Release|Win32.Build.0 = Release|Win32
+		{27851AB7-0A86-45A4-873E-8E76449401F7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{27851AB7-0A86-45A4-873E-8E76449401F7}.Debug|Win32.Build.0 = Debug|Win32
+		{27851AB7-0A86-45A4-873E-8E76449401F7}.Release|Win32.ActiveCfg = Release|Win32
+		{27851AB7-0A86-45A4-873E-8E76449401F7}.Release|Win32.Build.0 = Release|Win32
+		{E963FEE8-1010-4ACA-8093-8E9BE8996FB3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E963FEE8-1010-4ACA-8093-8E9BE8996FB3}.Debug|Win32.Build.0 = Debug|Win32
+		{E963FEE8-1010-4ACA-8093-8E9BE8996FB3}.Release|Win32.ActiveCfg = Release|Win32
+		{E963FEE8-1010-4ACA-8093-8E9BE8996FB3}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

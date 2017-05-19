@@ -39,10 +39,9 @@ mbus_tcp_connect(mbus_handle *handle)
 {
     char error_str[128], *host;    
 	struct addrinfo hints, *result, *rp;
-    struct sockaddr_in s;
     struct timeval time_out;
     mbus_tcp_data *tcp_data;
-    uint16_t port;
+    char port[6];
 
     if (handle == NULL)
         return -1;
@@ -52,19 +51,15 @@ mbus_tcp_connect(mbus_handle *handle)
         return -1;
 
     host = tcp_data->host;
-    port = tcp_data->port;
+    snprintf(port, sizeof(port), "%d", tcp_data->port);
 
     /* resolve hostname */
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;     /* Allow IPv4 or IPv6 */
 	hints.ai_socktype = SOCK_STREAM; /* Stream socket */
 	hints.ai_flags = AI_PASSIVE;     /* For wildcard IP address */
-	hints.ai_protocol = 0;           /* Any protocol */
-	hints.ai_canonname = NULL;
-	hints.ai_addr = NULL;
-	hints.ai_next = NULL;
 
-	if (getaddrinfo(NULL, host, &hints, &result) != 0)
+	if (getaddrinfo(host, port, &hints, &result) != 0)
 	{
 		snprintf(error_str, sizeof(error_str), "%s: unknown host: %s", __PRETTY_FUNCTION__, host);
 		mbus_error_str_set(error_str);
@@ -74,6 +69,8 @@ mbus_tcp_connect(mbus_handle *handle)
 	//
 	// create the TCP connection
 	//
+	handle->sock = MBUS_INVALID_SOCKET;
+
 	for (rp = result; rp != NULL; rp = rp->ai_next)
 	{
 		handle->sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
@@ -81,13 +78,16 @@ mbus_tcp_connect(mbus_handle *handle)
 		if (handle->sock == MBUS_INVALID_SOCKET)
 			continue;
 
-		if (connect(handle->sock, (struct sockaddr *)&s, sizeof(s)) == 0)
+		if (connect(handle->sock, rp->ai_addr, rp->ai_addrlen) == 0)
 			break;
-		else
-			closesocket(handle->sock);
+
+		closesocket(handle->sock);
+		handle->sock = MBUS_INVALID_SOCKET;
 	}
 
-	if (rp == NULL)
+	freeaddrinfo(result);
+
+	if (handle->sock == MBUS_INVALID_SOCKET)
 	{
 		snprintf(error_str, sizeof(error_str), "%s: Failed to establish connection to %s:%d", __PRETTY_FUNCTION__, host, port);
 		mbus_error_str_set(error_str);

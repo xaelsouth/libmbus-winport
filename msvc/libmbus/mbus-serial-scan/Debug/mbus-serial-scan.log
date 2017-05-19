@@ -1,10 +1,13 @@
-﻿Build started 29.04.2017 21:57:04.
-     1>Project "e:\libmbus-master\msvc\libmbus\mbus-serial-scan\mbus-serial-scan.vcxproj" on node 2 (Build target(s)).
-     1>Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.exe" /INCREMENTAL /NOLOGO "E:\libmbus-master\msvc\libmbus\Debug\\libmbus.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.lib" /MACHINE:X86 "Debug\mbus-serial-scan.obj"
-         mbus-serial-scan.vcxproj -> E:\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.exe
-     1>Done Building Project "e:\libmbus-master\msvc\libmbus\mbus-serial-scan\mbus-serial-scan.vcxproj" (Build target(s)).
+﻿Build started 19.05.2017 21:53:18.
+     1>Project "e:\Projects\libmbus-master\msvc\libmbus\mbus-serial-scan\mbus-serial-scan.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"e:\Projects\libmbus-master\msvc\libmbus\mbus-serial-scan\\..\..\.." /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:prompt "..\..\..\bin\mbus-serial-scan.c"
+         mbus-serial-scan.c
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Projects\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.exe" /INCREMENTAL /NOLOGO "E:\Projects\libmbus-master\msvc\libmbus\Debug\\libmbus.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\Projects\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Projects\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.lib" /MACHINE:X86 "Debug\mbus-serial-scan.obj"
+         mbus-serial-scan.vcxproj -> E:\Projects\libmbus-master\msvc\libmbus\Debug\mbus-serial-scan.exe
+     1>Done Building Project "e:\Projects\libmbus-master\msvc\libmbus\mbus-serial-scan\mbus-serial-scan.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.29
+Time Elapsed 00:00:01.07

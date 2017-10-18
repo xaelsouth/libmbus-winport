@@ -37,7 +37,7 @@
 int
 mbus_tcp_connect(mbus_handle *handle)
 {
-    char error_str[128], *host;    
+    char error_str[128], *host;
 	struct addrinfo hints, *result, *rp;
     struct timeval time_out;
     mbus_tcp_data *tcp_data;

@@ -25,7 +25,6 @@ main(int argc, char **argv)
     char *device, *addr = NULL;
     int ret;
     long baudrate = 9600;
-	char addr_buf[32];
 
     if (argc == 3)
     {
@@ -112,7 +111,7 @@ main(int argc, char **argv)
         if (mbus_frame_type(&reply) != MBUS_FRAME_TYPE_ACK)
         {
             printf("Recieved a reply from secondarily addressed device: Searched for [%s] and found [%s].\n",
-                   argv[2], mbus_frame_get_secondary_address(&reply, addr_buf));
+                   argv[2], mbus_frame_get_secondary_address(&reply));
         }
     }
     else
